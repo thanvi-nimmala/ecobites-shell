@@ -1,0 +1,184 @@
+/* ═══════════════════════════════════════════════════════════════
+   EcoBites — design tokens + primitives
+   Warm cream paper, earthy olive-forest green, terracotta accent.
+   Ported from the Claude Design prototype's styles.css; every value
+   a design control can change is a custom property.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── surfaces (warm cream / paper) ── */
+  --bg:        oklch(0.969 0.016 84);
+  --bg-2:      oklch(0.949 0.020 82);
+  --sand:      oklch(0.928 0.030 78);
+  --sand-deep: oklch(0.886 0.038 74);
+  --surface:   oklch(0.993 0.007 90);
+  --surface-2: oklch(0.975 0.013 88);
+  --border:    oklch(0.882 0.020 84);
+  --border-2:  oklch(0.824 0.024 80);
+
+  /* ── ink (warm near-black) ── */
+  --ink:   oklch(0.265 0.018 75);
+  --ink-2: oklch(0.430 0.020 75);
+  --ink-3: oklch(0.585 0.018 78);
+
+  /* ── primary — set by the design controls ── */
+  --green:      #4f7a4d;
+  --green-deep: color-mix(in oklch, var(--green) 74%, black);
+  --green-700:  color-mix(in oklch, var(--green) 87%, black);
+  --green-soft: color-mix(in oklch, var(--green) 20%, var(--surface));
+  --green-tint: color-mix(in oklch, var(--green) 10%, var(--surface));
+  --on-green:   oklch(0.984 0.013 130);
+
+  /* ── accent — terracotta / clay ── */
+  --clay:      #c2703d;
+  --clay-soft: color-mix(in oklch, var(--clay) 18%, var(--surface));
+  --clay-deep: color-mix(in oklch, var(--clay) 82%, black);
+
+  /* ── support ── */
+  --gold:      oklch(0.770 0.110 80);
+  --gold-soft: oklch(0.945 0.045 85);
+  --berry:     oklch(0.540 0.120 18);
+
+  /* ── shape ── */
+  --radius:    18px;
+  --radius-sm: 12px;
+  --radius-lg: 26px;
+
+  --shadow-sm: 0 1px 2px oklch(0.4 0.03 80 / 0.06), 0 2px 6px oklch(0.4 0.03 80 / 0.05);
+  --shadow:    0 2px 6px oklch(0.4 0.03 80 / 0.07), 0 12px 28px oklch(0.4 0.03 80 / 0.09);
+  --shadow-lg: 0 8px 20px oklch(0.4 0.03 80 / 0.10), 0 30px 60px oklch(0.4 0.03 80 / 0.13);
+
+  /* ── type ── */
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body:    'Hanken Grotesk', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* ── stage chrome (the case-study frame around the product) ── */
+  --stage-ink:    oklch(0.232 0.020 78);
+  --stage-deep:   oklch(0.178 0.018 76);
+  --stage-line:   oklch(0.360 0.020 78 / 0.9);
+  --stage-line-2: oklch(0.360 0.020 78 / 0.42);
+  --stage-text:   oklch(0.960 0.010 84);
+  --stage-dim:    oklch(0.780 0.016 82);
+  --stage-faint:  oklch(0.615 0.020 82);
+}
+
+* { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+html, body { height: 100%; margin: 0; overflow: hidden; }
+#root { position: fixed; inset: 0; }
+
+body {
+  background: var(--stage-deep);
+  color: var(--ink);
+  font-family: var(--font-body);
+  /* it is a prototype — dragging never means "select this text" */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button, input { font-family: inherit; color: inherit; }
+a { color: inherit; }
+
+.eb-display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.02em; line-height: 1.04; color: var(--ink); }
+.eb-body { font-family: var(--font-body); color: var(--ink); }
+
+.mono-label {
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--stage-faint);
+}
+
+/* ── buttons ── */
+.eb-btn {
+  font-family: var(--font-body); font-weight: 600; font-size: 15px;
+  border: none; border-radius: 99px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 13px 24px; transition: transform .12s ease, background .15s ease, box-shadow .15s ease;
+  white-space: nowrap; line-height: 1;
+}
+.eb-btn:active { transform: translateY(1px) scale(0.99); }
+.eb-btn-primary { background: var(--green); color: var(--on-green); box-shadow: 0 1px 2px oklch(0.4 0.05 150 / 0.2); }
+.eb-btn-primary:hover { background: var(--green-700); box-shadow: 0 4px 14px color-mix(in oklch, var(--green) 40%, transparent); }
+.eb-btn-clay { background: var(--clay); color: #fff; }
+.eb-btn-clay:hover { background: var(--clay-deep); }
+.eb-btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--border-2); }
+.eb-btn-ghost:hover { background: var(--surface-2); border-color: var(--ink-3); }
+.eb-btn-soft { background: var(--green-soft); color: var(--green-deep); }
+.eb-btn:disabled { opacity: .45; cursor: not-allowed; }
+.eb-btn-block { width: 100%; }
+
+/* ── chips ── */
+.eb-chip {
+  font-family: var(--font-body); font-weight: 500; font-size: 13.5px;
+  border-radius: 99px; padding: 8px 15px; cursor: pointer;
+  border: 1.5px solid var(--border-2); background: var(--surface); color: var(--ink-2);
+  transition: all .14s ease; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
+}
+.eb-chip:hover { border-color: var(--ink-3); color: var(--ink); }
+.eb-chip[data-active="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+
+/* ── cards ── */
+.eb-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow-sm);
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.eb-card-hover:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--border-2); }
+
+/* ── inputs ── */
+.eb-input {
+  font-family: var(--font-body); font-size: 15px; color: var(--ink);
+  width: 100%; padding: 13px 16px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-2); background: var(--surface);
+  transition: border-color .15s ease, box-shadow .15s ease; outline: none;
+}
+.eb-input::placeholder { color: var(--ink-3); }
+.eb-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px color-mix(in oklch, var(--green) 18%, transparent); }
+
+/* ── badge ── */
+.eb-badge {
+  font-family: var(--font-body); font-weight: 600; font-size: 12px; letter-spacing: 0.01em;
+  padding: 4px 10px; border-radius: 99px; display: inline-flex; align-items: center; gap: 5px; line-height: 1.2;
+}
+
+/* ── tinted food tile (the no-photography variant) ── */
+.eb-tile { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+
+/* ── scroll ── */
+.eb-scroll { overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; }
+.eb-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.eb-scroll::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 99px; }
+.eb-scroll::-webkit-scrollbar-track { background: transparent; }
+
+.scroll { overflow-y: auto; overflow-x: hidden; scrollbar-width: none; overscroll-behavior: contain; }
+.scroll::-webkit-scrollbar { width: 0; height: 0; }
+
+.press { transition: transform .14s cubic-bezier(.2,.8,.3,1), filter .16s ease; }
+.press:active { transform: scale(.965); }
+
+/* ── motion ── */
+@keyframes eb-fade-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes eb-fade    { from { opacity: 0; } to { opacity: 1; } }
+@keyframes eb-pop     { 0% { transform: scale(0.8); opacity: 0; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+@keyframes eb-bob     { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+.eb-fade-up { animation: eb-fade-up .4s cubic-bezier(.2,.7,.3,1) both; }
+.eb-fade    { animation: eb-fade .35s ease both; }
+.eb-pop     { animation: eb-pop .4s cubic-bezier(.2,.7,.3,1) both; }
+.eb-mascot  { animation: eb-bob 3.6s ease-in-out infinite; will-change: transform; }
+
+@media (prefers-reduced-motion: reduce) {
+  .eb-mascot { animation: none; }
+}
+
+/* ═══ record mode — strips the case-study chrome for clean capture ═══ */
+/* kept in the DOM, not display:none — a reel that drives the design
+   controls has to keep working while the chrome is hidden */
+.stage.recording .rail,
+.stage.recording .panel { width: 0; overflow: hidden; visibility: hidden; }
+
+.demo-bar[data-playing='true'] { opacity: .16; transition: opacity .8s .6s; }
+.demo-bar[data-playing='true']:hover { opacity: 1; transition: opacity .18s; }
+
+/* ═══ still capture (?shot=) — nothing but the screen ═══ */
+:root[data-shot] .eb-scroll::-webkit-scrollbar { width: 0; height: 0; }
+:root[data-shot] .eb-scroll { scrollbar-width: none; }
