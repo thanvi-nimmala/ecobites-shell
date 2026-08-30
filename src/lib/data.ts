@@ -79,17 +79,21 @@ export const DRIVER = {
 export const CLIENT = { name: 'Amara', initial: 'A', zip: 'Newark, NJ 07102' }
 
 /* ---- curated photography (warm editorial food stills) ---- */
+/* string literals, not imports — Vite leaves these alone, so the base
+   prefix has to be applied explicitly or they 404 on a subpath deploy */
+const BASE = import.meta.env.BASE_URL
+
 export const PHOTO = {
-  communityTable: '/photos/community-table.jpeg',
-  abundance:      '/photos/abundance.jpeg',
-  citrusConcrete: '/photos/citrus-concrete.jpeg',
-  papayaOlive:    '/photos/papaya-olive.jpeg',
-  fruitFloat:     '/photos/fruit-float.jpeg',
-  pearsPlate:     '/photos/pears-plate.jpeg',
-  pearApple:      '/photos/pear-apple.jpeg',
-  vegArt:         '/photos/veg-art.jpeg',
-  gelDots:        '/photos/gel-dots.jpeg',
-  citrusStack:    '/photos/citrus-stack.jpeg',
+  communityTable: `${BASE}photos/community-table.jpeg`,
+  abundance:      `${BASE}photos/abundance.jpeg`,
+  citrusConcrete: `${BASE}photos/citrus-concrete.jpeg`,
+  papayaOlive:    `${BASE}photos/papaya-olive.jpeg`,
+  fruitFloat:     `${BASE}photos/fruit-float.jpeg`,
+  pearsPlate:     `${BASE}photos/pears-plate.jpeg`,
+  pearApple:      `${BASE}photos/pear-apple.jpeg`,
+  vegArt:         `${BASE}photos/veg-art.jpeg`,
+  gelDots:        `${BASE}photos/gel-dots.jpeg`,
+  citrusStack:    `${BASE}photos/citrus-stack.jpeg`,
 }
 
 const LISTING_PHOTOS: Record<string, string> = {
