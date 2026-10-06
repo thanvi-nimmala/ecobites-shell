@@ -20,12 +20,19 @@ import { Toasts } from './stage/Toasts'
 import { SCENES, sceneById, type OrderLevel, type SceneId, type View } from './stage/scenes'
 
 import { DemoCursor } from './demo/DemoCursor'
+import { CardCover, CardCoverLive } from './card/CardCover'
 import { useDemoRunner } from './demo/useDemoRunner'
+
+/* ?card renders the portfolio card cover alone. ?card&t=<seconds> freezes it at one
+   instant, which is how the frame renderer walks the loop. */
+const CARD = new URLSearchParams(location.search).has('card')
+const CARD_T = new URLSearchParams(location.search).get('t')
 
 /** ?shot=<sceneId> renders one surface alone, unchromed, for still capture */
 const SHOT = new URLSearchParams(location.search).get('shot') as SceneId | null
 const SHOT_SCENE = SHOT ? SCENES.find((s) => s.id === SHOT) : undefined
 if (SHOT_SCENE) document.documentElement.dataset.shot = '1'
+if (CARD) document.documentElement.dataset.card = '1'
 
 /* the still sizes the portfolio and the deck expect */
 const SHOT_WEB = { w: 920, h: 720 }
@@ -42,6 +49,17 @@ const LEVEL_RANK: Record<OrderLevel, number> = {
 }
 
 export default function App() {
+  /* before anything else: the cover is its own artefact and must not boot the
+     store, the stage, or the reel runner */
+  if (CARD) {
+    return CARD_T !== null
+      ? <CardCover t={parseFloat(CARD_T)} />
+      : <CardCoverLive />
+  }
+  return <Stage />
+}
+
+function Stage() {
   const [theme, setTheme] = useState<Theme>(DEFAULT_THEME)
   useEffect(() => { applyTheme(theme) }, [theme])
   const set = useCallback(<K extends keyof Theme>(k: K, v: Theme[K]) => setTheme((t) => ({ ...t, [k]: v })), [])

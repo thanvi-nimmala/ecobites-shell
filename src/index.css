@@ -182,3 +182,8 @@ a { color: inherit; }
 /* ═══ still capture (?shot=) — nothing but the screen ═══ */
 :root[data-shot] .eb-scroll::-webkit-scrollbar { width: 0; height: 0; }
 :root[data-shot] .eb-scroll { scrollbar-width: none; }
+
+/* ═══ portfolio card cover (?card) — exact 1040x670 artboard ═══ */
+:root[data-card] body { background: #eef6f1; overflow: hidden; }
+:root[data-card] #root { position: static; inset: auto; }
+:root[data-card] svg { display: block; }
