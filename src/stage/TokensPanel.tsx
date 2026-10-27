@@ -120,7 +120,7 @@ export function TokensPanel({ theme, set, view, onView, onReset }: Props) {
       </Group>
 
       <Group label={`Corner radius — ${theme.radius}px`}>
-        <input type="range" min={6} max={28} step={1} value={theme.radius}
+        <input type="range" min={0} max={28} step={1} value={theme.radius}
           onChange={(e) => set('radius', +e.target.value)}
           style={{ width: '100%', accentColor: 'var(--green)' }} />
       </Group>

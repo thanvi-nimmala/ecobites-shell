@@ -14,11 +14,6 @@ import { useStore } from '../lib/store'
 import { CAbout, CBrowse, CCheckout, CConfirm, CDetail, CTrack } from './screens'
 import { CDirectory } from './directory'
 import { CSignup } from './signup'
-import { DirectoryNotice, DirectoryPrinted, type DirStyle } from './directory-styles'
-
-/* ?style=printed|notice swaps the directory for a visual-direction mockup,
-   built on the same data so the comparison is honest */
-const DIR_STYLE = new URLSearchParams(location.search).get('style') as DirStyle | null
 
 export function ClientApp({ route, go }: { route: ClientRoute; go: GoClient }) {
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -29,9 +24,7 @@ export function ClientApp({ route, go }: { route: ClientRoute; go: GoClient }) {
     signup:   <CSignup go={go} />,
     home:     <CHome go={go} />,
     about:    <CAbout go={go} />,
-    directory: DIR_STYLE === 'printed' ? <DirectoryPrinted />
-      : DIR_STYLE === 'notice' ? <DirectoryNotice />
-      : <CDirectory go={go} />,
+    directory: <CDirectory go={go} />,
     browse:   <CBrowse go={go} cat={route.cat} />,
     detail:   <CDetail go={go} id={route.id} />,
     checkout: <CCheckout go={go} />,

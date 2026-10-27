@@ -44,12 +44,10 @@ export function DHeader({ title, sub, onBack, right }: {
   return (
     <div style={{
       padding: `${DPAD}px 20px 16px`, flexShrink: 0, zIndex: 5, position: 'relative',
-      /* A deep, lit band at the top. The app was uniformly cream, which gave it
-         no contrast to work with and nothing for the glass below to sit against. */
-      background:
-        'radial-gradient(120% 140% at 88% -30%, color-mix(in oklch, var(--green) 52%, transparent) 0%, transparent 62%),'
-        + 'linear-gradient(168deg, var(--green-deep) 0%, color-mix(in oklch, var(--green-deep) 78%, black) 100%)',
-      boxShadow: '0 1px 0 oklch(1 0 0 / .10) inset, 0 8px 22px oklch(0.25 0.04 140 / .22)',
+      /* A solid band of the primary ink. It was a lit gradient while the system
+         had depth; printed matter has none, so it is one flat colour with a
+         rule under it, like a masthead. */
+      background: 'var(--green-deep)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {onBack && (

@@ -13,17 +13,19 @@ import { Logo, LogoMedallion } from '../components/Logo'
 import { DPAD, useStatusInk } from '../components/PhoneFrame'
 import { Badge, MapView, Tile } from '../components/ui'
 import {
-  CATEGORIES, CLIENT, DRIVER, LISTINGS, ORDER_STAGES, PHOTO,
+  CATEGORIES, CLIENT, DAYS, DRIVER, LISTINGS, ORDER_STAGES, PHOTO,
+  PROVIDERS, PROVIDER_KINDS, TODAY,
   listingPhoto, plural, provider,
 } from '../lib/data'
 import type { ClientPhoneName, ClientPhoneRoute, GoClientPhone } from '../lib/nav'
 import { useStore } from '../lib/store'
-import type { Fulfillment, Listing, Order } from '../lib/types'
+import type { Fulfillment, Listing, Order, Provider, ProviderKind } from '../lib/types'
 import { DHeader } from '../driver/DriverApp'
 
 /* sign-in and the confirmation open on cream; the rest open on a header band
    or a photograph */
 const LIGHT_TOP: ReadonlySet<ClientPhoneName> = new Set(['login', 'confirm'])
+
 
 export function ClientPhoneApp({ route, go }: { route: ClientPhoneRoute; go: GoClientPhone }) {
   const { orders } = useStore()
@@ -37,6 +39,7 @@ export function ClientPhoneApp({ route, go }: { route: ClientPhoneRoute; go: GoC
     confirm: <CPConfirm go={go} order={order} />,
     track:   <CPTrack go={go} order={order} />,
     orders:  <CPOrders go={go} />,
+    places:  <CPPlaces go={go} />,
   }
 
   return (
@@ -44,7 +47,7 @@ export function ClientPhoneApp({ route, go }: { route: ClientPhoneRoute; go: GoC
       <div key={route.name} className="eb-fade" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         {screens[route.name]}
       </div>
-      {(route.name === 'browse' || route.name === 'orders') && <CPTabBar screen={route.name} go={go} />}
+      {(route.name === 'browse' || route.name === 'places' || route.name === 'orders') && <CPTabBar screen={route.name} go={go} />}
     </div>
   )
 }
@@ -496,7 +499,9 @@ function CPAvatar() {
 }
 
 function CPTabBar({ screen, go }: { screen: ClientPhoneName; go: GoClientPhone }) {
-  const tabs: [ClientPhoneName, string, string][] = [['browse', 'bag', 'Food'], ['orders', 'route', 'Orders']]
+  const tabs: [ClientPhoneName, string, string][] = [
+    ['browse', 'bag', 'Food'], ['places', 'pin', 'Places'], ['orders', 'route', 'Orders'],
+  ]
   return (
     <div className="eb-glass" style={{
       display: 'flex', padding: '8px 24px 26px',
@@ -511,6 +516,122 @@ function CPTabBar({ screen, go }: { screen: ClientPhoneName; go: GoClientPhone }
           <Icon name={ic} size={23} /> {label}
         </button>
       ))}
+    </div>
+  )
+}
+
+/* ---------- the directory, on a phone ----------
+   This is the screen the directory was always for. Looking a pantry up on
+   the website assumes you are sitting down; the real moment is standing on
+   a street deciding whether it is worth the walk. So the phone leads with
+   what the desktop buries: open or closed right now, how far, and what they
+   will ask you for. Hours collapse to today, with the rest a tap away. */
+
+function CPPlaces({ go }: { go: GoClientPhone }) {
+  const [kind, setKind] = useState<'all' | ProviderKind>('all')
+  const [openOnly, setOpenOnly] = useState(false)
+  const list = useMemo(
+    () => PROVIDERS
+      .filter((p) => (kind === 'all' || p.kind === kind) && (!openOnly || p.open))
+      .sort((a, b) => a.dist - b.dist),
+    [kind, openOnly],
+  )
+  return (
+    <>
+      <DHeader title="Places near you" sub={`${list.length} in Essex County · ${DAYS[TODAY]}`} right={<CPAvatar />} />
+      <div className="eb-scroll" style={{ flex: 1, padding: '14px 16px 18px' }}>
+        <div style={{ display: 'flex', gap: 7, overflowX: 'auto', paddingBottom: 12 }}>
+          <button className="eb-chip" data-active={openOnly} data-demo="p-places-open"
+            onClick={() => setOpenOnly((v) => !v)} style={{ fontSize: 13, flexShrink: 0 }}>Open now</button>
+          {(['all', ...PROVIDER_KINDS] as ('all' | ProviderKind)[]).map((k) => (
+            <button key={k} className="eb-chip" data-active={kind === k} data-demo={`p-places-${k.replace(/\s+/g, '-')}`}
+              onClick={() => setKind(k)} style={{ fontSize: 13, flexShrink: 0 }}>
+              {k === 'all' ? 'All' : k}
+            </button>
+          ))}
+        </div>
+        {list.length === 0
+          ? <CPEmpty go={go} title="Nothing matches that" note="Every place on this list is free and open to anyone — try dropping a filter." />
+          : list.map((p) => <CPPlaceCard key={p.id} p={p} />)}
+      </div>
+    </>
+  )
+}
+
+function CPPlaceCard({ p }: { p: Provider }) {
+  const [open, setOpen] = useState(false)
+  const today = p.hours[TODAY]
+  return (
+    <div className="eb-card" data-demo={`p-place-${p.id}`} style={{ padding: 14, marginBottom: 11 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 7 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 15.5, lineHeight: 1.25 }}>{p.name}</div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-3)', marginTop: 2 }}>{p.kind} · {p.dist} mi</div>
+        </div>
+        <Badge tone={p.open ? 'green' : 'clay'}>{p.open ? 'Open' : 'Closed'}</Badge>
+      </div>
+
+      {/* the line that decides whether the walk is worth it */}
+      <div style={{
+        display: 'flex', gap: 9, alignItems: 'flex-start', padding: '9px 11px', margin: '0 0 10px',
+        borderRadius: 'var(--radius-sm)', background: 'var(--green-tint)',
+        border: '1.5px solid color-mix(in oklch, var(--green) 26%, transparent)',
+      }}>
+        <Icon name="checkCircle" size={15} stroke="var(--green-deep)" style={{ flexShrink: 0, marginTop: 1 }} />
+        <span style={{ fontSize: 13, lineHeight: 1.45 }}>{p.bring}</span>
+      </div>
+
+      <div style={{ fontSize: 13, color: 'var(--ink-2)', display: 'flex', flexDirection: 'column', gap: 5 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Icon name="clock" size={13} stroke="var(--ink-3)" />
+          {today ? <>Today {today}</> : <span style={{ color: 'var(--ink-3)' }}>Closed today</span>}
+        </span>
+        <span style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+          <Icon name="pin" size={13} stroke="var(--ink-3)" style={{ flexShrink: 0, marginTop: 2 }} /> {p.addr}
+        </span>
+      </div>
+
+      {open && (
+        <div className="eb-fade" style={{ marginTop: 11, paddingTop: 11, borderTop: '1.5px solid var(--edge)' }}>
+          <div className="mono-label" style={{ color: 'var(--ink-3)', marginBottom: 6 }}>ALL HOURS</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginBottom: 11 }}>
+            {p.hours.map((h, i) => (
+              <div key={i} style={{
+                display: 'flex', justifyContent: 'space-between', fontSize: 12.5,
+                fontWeight: i === TODAY ? 700 : 400,
+                color: h ? 'var(--ink-2)' : 'var(--ink-3)',
+              }}>
+                <span>{DAYS[i].slice(0, 3)}</span><span>{h ?? 'Closed'}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mono-label" style={{ color: 'var(--ink-3)', marginBottom: 6 }}>WHAT THEY HAVE</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 11 }}>
+            {p.services.map((sv) => (
+              <span key={sv} className="eb-badge" style={{ background: 'var(--surface-2)', color: 'var(--ink-2)', border: '1.5px solid var(--edge)' }}>{sv}</span>
+            ))}
+          </div>
+          <div style={{ fontSize: 12.5, color: 'var(--ink-2)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span>{p.stepFree ? 'Step-free entrance' : 'Steps at the entrance — call ahead'}</span>
+            {p.transit && <span>{p.transit}</span>}
+            <span>{p.languages.join(' · ')}</span>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <button className="eb-btn eb-btn-ghost" data-demo={`p-place-call-${p.id}`}
+          style={{ flex: 1, padding: '10px 0', fontSize: 13.5 }}>
+          <Icon name="phone" size={15} /> Call
+        </button>
+        <button className="eb-btn eb-btn-ghost" style={{ flex: 1, padding: '10px 0', fontSize: 13.5 }}>
+          <Icon name="nav" size={15} /> Directions
+        </button>
+        <button className="eb-btn eb-btn-soft" data-demo={`p-place-more-${p.id}`}
+          onClick={() => setOpen((v) => !v)} style={{ flex: 1, padding: '10px 0', fontSize: 13.5 }}>
+          {open ? 'Less' : 'Details'}
+        </button>
+      </div>
     </div>
   )
 }

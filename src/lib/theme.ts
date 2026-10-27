@@ -5,7 +5,7 @@
    ============================================================ */
 
 export const PRIMARIES = [
-  { name: 'Olive forest', value: '#4f7a4d' },
+  { name: 'Olive forest', value: '#3f6b3d' },
   { name: 'Deep basil',   value: '#3f6b57' },
   { name: 'Field green',  value: '#5a7d3a' },
   { name: 'Sea pine',     value: '#2f7d6b' },
@@ -13,7 +13,7 @@ export const PRIMARIES = [
 ] as const
 
 export const ACCENTS = [
-  { name: 'Terracotta', value: '#c2703d' },
+  { name: 'Terracotta', value: '#b35f32' },
   { name: 'Tomato',     value: '#cf5b54' },
   { name: 'Harvest',    value: '#d98a3d' },
   { name: 'Clay brick',  value: '#b5683f' },
@@ -45,7 +45,7 @@ export const DEFAULT_THEME: Theme = {
   primary: PRIMARIES[0].value,
   accent: ACCENTS[0].value,
   display: 'Libre Franklin',
-  radius: 18,
+  radius: 16,
   imagery: 'photo',
 }
 

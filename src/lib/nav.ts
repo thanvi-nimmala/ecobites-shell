@@ -23,7 +23,7 @@ export interface DriverRoute {
    it, so the phone is routed by (side, screen) rather than by screen alone. */
 export type PhoneSide = 'gate' | 'driver' | 'client'
 
-export type ClientPhoneName = 'login' | 'browse' | 'detail' | 'confirm' | 'track' | 'orders'
+export type ClientPhoneName = 'login' | 'browse' | 'detail' | 'confirm' | 'track' | 'orders' | 'places'
 
 export interface ClientPhoneRoute {
   name: ClientPhoneName

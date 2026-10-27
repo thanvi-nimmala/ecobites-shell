@@ -6,23 +6,26 @@
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── surfaces (warm cream / paper) ── */
-  --bg:        oklch(0.969 0.016 84);
-  --bg-2:      oklch(0.949 0.020 82);
-  --sand:      oklch(0.928 0.030 78);
-  --sand-deep: oklch(0.886 0.038 74);
-  --surface:   oklch(0.993 0.007 90);
-  --surface-2: oklch(0.975 0.013 88);
-  --border:    oklch(0.882 0.020 84);
-  --border-2:  oklch(0.824 0.024 80);
+  /* ── surfaces (uncoated paper) ──
+     Printed matter: the service reads as a grocery flyer or a market
+     handbill, not a delivery app. Paper with a tooth, two inks, square
+     corners, rules where a consumer app would use a shadow. */
+  --bg:        #f1ebdc;
+  --bg-2:      #ebe4d2;
+  --sand:      #e3dbc6;
+  --sand-deep: #d6ccb2;
+  --surface:   #f7f2e6;
+  --surface-2: #ece5d5;
+  --border:    #2b2a2422;
+  --border-2:  #2b2a2438;
 
-  /* ── ink (warm near-black) ── */
-  --ink:   oklch(0.265 0.018 75);
-  --ink-2: oklch(0.430 0.020 75);
-  --ink-3: oklch(0.585 0.018 78);
+  /* ── ink ── */
+  --ink:   #2b2a24;
+  --ink-2: #514e44;
+  --ink-3: #7b7668;
 
   /* ── primary — set by the design controls ── */
-  --green:      #4f7a4d;
+  --green:      #3f6b3d;
   --green-deep: color-mix(in oklch, var(--green) 74%, black);
   --green-700:  color-mix(in oklch, var(--green) 87%, black);
   --green-soft: color-mix(in oklch, var(--green) 20%, var(--surface));
@@ -30,12 +33,12 @@
   --on-green:   oklch(0.984 0.013 130);
 
   /* ── accent — terracotta / clay ── */
-  --clay:      #c2703d;
+  --clay:      #b35f32;
   --clay-soft: color-mix(in oklch, var(--clay) 18%, var(--surface));
   --clay-deep: color-mix(in oklch, var(--clay) 82%, black);
 
   /* ── support ── */
-  --gold:      oklch(0.770 0.110 80);
+  --gold:      #c69a42;
   --gold-soft: oklch(0.945 0.045 85);
   --berry:     oklch(0.540 0.120 18);
 
@@ -43,35 +46,34 @@
   /* the website's nav floats over the content, so anything sticky has to
      clear it rather than slide underneath */
   --nav-h: 68px;
-  --radius:    18px;
-  --radius-sm: 12px;
-  --radius-lg: 26px;
+  /* Printed, but not hard-edged: the palette and the flatness are the
+     direction, the boxy outline was not. */
+  --radius:    16px;
+  --radius-sm: 11px;
+  --radius-lg: 22px;
 
-  /* Light, not outlines. Separation used to come from a tinted 1.5px stroke on
-     a flat ground, which is what made the UI read as drawn boxes rather than
-     as a surface — these are layered so a card has both a contact shadow and
-     an ambient one, the way a real sheet of paper does. */
-  --shadow-sm: 0 1px 1.5px oklch(0.38 0.03 70 / 0.07), 0 2px 5px oklch(0.38 0.03 70 / 0.05);
-  --shadow:    0 1px 2px oklch(0.38 0.03 70 / 0.08), 0 6px 16px oklch(0.38 0.03 70 / 0.08), 0 14px 34px oklch(0.38 0.03 70 / 0.07);
-  --shadow-lg: 0 2px 4px oklch(0.38 0.03 70 / 0.08), 0 14px 32px oklch(0.38 0.03 70 / 0.11), 0 36px 72px oklch(0.38 0.03 70 / 0.13);
+  /* Barely there. Enough to lift a card off the paper, not enough to make it
+     float like a consumer app. */
+  --shadow-sm: 0 1px 2px #2b2a2410;
+  --shadow:    0 1px 2px #2b2a2412, 0 4px 12px #2b2a240e;
+  --shadow-lg: 0 2px 6px #2b2a2414, 0 12px 28px #2b2a2414;
+  --offset:    var(--shadow-sm);
 
-  /* ── material ──
-     A hairline of light along the top edge is what sells a surface as lit
-     from above; the border is a neutral low-alpha line rather than a tinted
-     stroke, so colour never does the job that value should. */
-  --hairline: oklch(1 0 0 / 0.85);
-  --edge:     oklch(0.70 0.020 78 / 0.30);
-  --edge-2:   oklch(0.66 0.022 78 / 0.46);
+  /* ── rules ──
+     Warm and low-contrast. A hard ink outline made every element read as a
+     box drawn around content rather than a surface holding it. */
+  --hairline: transparent;
+  --edge:     #2b2a2422;
+  --edge-2:   #2b2a2438;
 
   /* ── glass ──
-     Only for chrome that content actually travels behind: the nav, phone
-     headers, tab bars, sticky action bars, and panels laid over photography.
-     Blur with nothing behind it is just a flat fill with a performance cost. */
-  --glass:       oklch(0.995 0.006 90 / 0.70);
-  --glass-2:     oklch(0.995 0.006 90 / 0.82);
-  --glass-edge:  oklch(1 0 0 / 0.70);
-  --glass-blur:  saturate(1.7) blur(20px);
-  /* the variant the client portal's gate uses, over a dark photograph */
+     Printed chrome is opaque: the nav, headers and action bars are solid
+     paper with a rule under them. The translucent pair survives only for
+     panels laid over a photograph, where there is something to see through. */
+  --glass:       var(--surface);
+  --glass-2:     var(--surface);
+  --glass-edge:  var(--edge);
+  --glass-blur:  none;
   --glass-dark:      oklch(1 0 0 / 0.13);
   --glass-dark-edge: oklch(1 0 0 / 0.30);
 
@@ -118,9 +120,9 @@ a { color: inherit; }
    has somewhere to read against. Still driven by --bg, so the design control
    keeps working. */
 .eb-ground {
-  background:
-    radial-gradient(135% 72% at 50% -12%, color-mix(in oklch, var(--surface) 94%, white) 0%, transparent 62%),
-    linear-gradient(180deg, var(--bg) 0%, color-mix(in oklch, var(--bg) 86%, var(--sand)) 100%);
+  background: var(--bg);
+  background-image: radial-gradient(oklch(0.45 0.03 70 / .06) 0.5px, transparent 0.6px);
+  background-size: 3px 3px;
 }
 
 .mono-label {
@@ -137,30 +139,14 @@ a { color: inherit; }
   white-space: nowrap; line-height: 1;
 }
 .eb-btn:active { transform: translateY(1px) scale(0.99); }
-.eb-btn-primary {
-  background: linear-gradient(180deg, color-mix(in oklch, var(--green) 88%, white) 0%, var(--green) 55%, var(--green-700) 100%);
-  color: var(--on-green);
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.25), 0 1px 2px color-mix(in oklch, var(--green) 45%, transparent),
-              0 6px 16px color-mix(in oklch, var(--green) 28%, transparent);
-}
-.eb-btn-primary:hover {
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.3), 0 2px 4px color-mix(in oklch, var(--green) 45%, transparent),
-              0 10px 26px color-mix(in oklch, var(--green) 38%, transparent);
-}
-.eb-btn-clay {
-  background: linear-gradient(180deg, color-mix(in oklch, var(--clay) 88%, white) 0%, var(--clay) 55%, var(--clay-deep) 100%);
-  color: #fff;
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.26), 0 1px 2px color-mix(in oklch, var(--clay) 45%, transparent),
-              0 6px 16px color-mix(in oklch, var(--clay) 28%, transparent);
-}
-.eb-btn-clay:hover { box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.3), 0 10px 26px color-mix(in oklch, var(--clay) 38%, transparent); }
-.eb-btn-ghost {
-  background: linear-gradient(180deg, var(--surface), color-mix(in oklch, var(--surface) 88%, var(--sand)));
-  color: var(--ink); border: 1px solid var(--edge-2);
-  box-shadow: inset 0 1px 0 var(--hairline), var(--shadow-sm);
-}
+/* one flat ink, lifted just off the page */
+.eb-btn-primary { background: var(--green); color: var(--on-green); box-shadow: 0 1px 2px #2b2a2420, 0 4px 12px color-mix(in oklch, var(--green) 22%, transparent); }
+.eb-btn-primary:hover { background: var(--green-700); }
+.eb-btn-clay { background: var(--clay); color: #fff; box-shadow: 0 1px 2px #2b2a2420, 0 4px 12px color-mix(in oklch, var(--clay) 22%, transparent); }
+.eb-btn-clay:hover { background: var(--clay-deep); }
+.eb-btn-ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--edge-2); box-shadow: var(--shadow-sm); }
 .eb-btn-ghost:hover { border-color: var(--ink-3); }
-.eb-btn-soft { background: var(--green-soft); color: var(--green-deep); box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.5); }
+.eb-btn-soft { background: var(--green-soft); color: var(--green-deep); }
 .eb-btn:disabled { opacity: .45; cursor: not-allowed; }
 .eb-btn-block { width: 100%; }
 
@@ -168,17 +154,11 @@ a { color: inherit; }
 .eb-chip {
   font-family: var(--font-body); font-weight: 500; font-size: 13.5px;
   border-radius: 99px; padding: 8px 15px; cursor: pointer;
-  border: 1px solid var(--edge-2); color: var(--ink-2);
-  background: linear-gradient(180deg, var(--surface), color-mix(in oklch, var(--surface) 90%, var(--sand)));
-  box-shadow: inset 0 1px 0 var(--hairline), var(--shadow-sm);
+  border: 1px solid var(--edge-2); color: var(--ink-2); background: var(--surface);
   transition: all .14s ease; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
 }
 .eb-chip:hover { border-color: var(--ink-3); color: var(--ink); }
-.eb-chip[data-active="true"] {
-  background: linear-gradient(180deg, color-mix(in oklch, var(--ink) 88%, white), var(--ink));
-  border-color: var(--ink); color: var(--bg);
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.22), var(--shadow-sm);
-}
+.eb-chip[data-active="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 
 /* ── cards ── */
 /* A card is a lit surface, not a drawn rectangle: a faint top-down gradient,
@@ -186,31 +166,25 @@ a { color: inherit; }
    layered shadow. .eb-card-raised lifts it further for things that genuinely
    float — the landing card over a photograph, toasts, popovers. */
 .eb-card {
-  background: linear-gradient(177deg, var(--surface) 0%, color-mix(in oklch, var(--surface) 90%, var(--sand)) 100%);
+  background: var(--surface);
   border: 1px solid var(--edge);
   border-radius: var(--radius-sm);
-  box-shadow: inset 0 1px 0 var(--hairline), var(--shadow-sm);
-  transition: transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .18s ease, border-color .18s ease;
+  box-shadow: var(--shadow-sm);
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
 }
-.eb-card-hover:hover {
-  transform: translateY(-2px);
-  border-color: var(--edge-2);
-  box-shadow: inset 0 1px 0 var(--hairline), var(--shadow);
-}
-.eb-card-raised { box-shadow: inset 0 1px 0 var(--hairline), var(--shadow-lg); }
+.eb-card-hover:hover { border-color: var(--edge-2); box-shadow: var(--shadow); transform: translateY(-1px); }
+.eb-card-raised { box-shadow: var(--shadow-lg); }
 
 /* ── glass ──
    Chrome that content scrolls behind. Both variants carry an inner top
    highlight, which is the edge that makes a translucent panel read as a
    pane of something rather than as a tint. */
+/* solid paper with a soft rule under it, not a pane of anything */
 .eb-glass {
-  background: var(--glass);
-  -webkit-backdrop-filter: var(--glass-blur);
-  backdrop-filter: var(--glass-blur);
-  border-color: var(--glass-edge);
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.65);
+  background: var(--surface);
+  border-color: var(--edge-2);
 }
-.eb-glass-solid { background: var(--glass-2); }
+.eb-glass-solid { background: var(--surface); }
 .eb-glass-dark {
   background: var(--glass-dark);
   -webkit-backdrop-filter: saturate(1.3) blur(7px);
@@ -223,9 +197,8 @@ a { color: inherit; }
 .eb-ichip {
   width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(180deg, color-mix(in oklch, var(--green) 14%, var(--surface)), var(--green-tint));
+  background: var(--green-tint);
   border: 1px solid color-mix(in oklch, var(--green) 22%, transparent);
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.7);
 }
 
 /* ---- checkerboard band: the section divider ---- */
@@ -246,8 +219,7 @@ a { color: inherit; }
 .eb-input {
   font-family: var(--font-body); font-size: 15px; color: var(--ink);
   width: 100%; padding: 13px 16px; border-radius: var(--radius-sm);
-  border: 1px solid var(--edge-2); background: color-mix(in oklch, var(--surface) 92%, var(--sand));
-  box-shadow: inset 0 1.5px 3px oklch(0.4 0.03 70 / 0.07);
+  border: 1px solid var(--edge-2); background: var(--surface);
   transition: border-color .15s ease, box-shadow .15s ease; outline: none;
 }
 .eb-input::placeholder { color: var(--ink-3); }
@@ -257,9 +229,9 @@ a { color: inherit; }
 
 /* ── badge ── */
 .eb-badge {
-  font-family: var(--font-body); font-weight: 600; font-size: 12px; letter-spacing: 0.01em;
-  white-space: nowrap;
-  padding: 4px 10px; border-radius: 99px; display: inline-flex; align-items: center; gap: 5px; line-height: 1.2;
+  font-family: var(--font-mono); font-weight: 500; font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap;
+  padding: 4px 9px; border-radius: 99px; display: inline-flex; align-items: center; gap: 5px; line-height: 1.3;
 }
 
 /* ── tinted food tile (the no-photography variant) ── */

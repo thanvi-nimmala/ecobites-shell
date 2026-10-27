@@ -180,6 +180,7 @@ function Shell({ theme, set }: { theme: Theme; set: <K extends keyof Theme>(k: K
         switch (phoneRoute.name) {
           case 'login': return 'pLogin'
           case 'browse': return 'pBrowse'
+          case 'places': return 'pPlaces'
           case 'detail': return 'pDetail'
           case 'confirm': return 'pConfirm'
           case 'track': return 'pTrack'

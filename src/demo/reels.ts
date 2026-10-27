@@ -46,7 +46,9 @@ export const REELS: Reel[] = [
     seconds: 26,
     steps: [
       { act: (c) => { c.reset(); c.scene('landing') }, caption: 'Amara needs food this week. No account wall.', hold: 2000 },
-      { target: 'c-find', caption: 'A ZIP code is the whole sign-up', hold: 1500 },
+      { target: 'c-find', caption: 'A ZIP code and a household size', hold: 1400 },
+      { target: 'c-signup-attest', caption: 'One declaration, taken at its word', hold: 1600 },
+      { target: 'c-signup-submit', caption: 'No documents, and no waiting to be approved', hold: 1500 },
       { target: 'c-cat-produce', caption: 'Browsing by what she can actually cook', hold: 1600 },
       { target: 'c-listing-l1', caption: 'A produce box from the food bank 1.4 miles away', hold: 1900 },
       { target: 'c-reserve', caption: 'Stock and waitlist stated before she commits', hold: 1700 },
@@ -178,7 +180,7 @@ export const REELS: Reel[] = [
       { target: 'tok-img-pattern', caption: 'Drop photography for pantries that have none', hold: 2200 },
       { target: 'tok-img-photo', hold: 1200 },
       { target: 'tok-font-Libre', hold: 1000 },
-      { target: 'tok-primary-4f7a4d', caption: 'Nothing downstream had to know', hold: 2400 },
+      { target: 'tok-primary-3f6b3d', caption: 'Nothing downstream had to know', hold: 2400 },
     ],
   },
 ]

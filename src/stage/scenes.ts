@@ -8,7 +8,7 @@ import type { ClientPhoneRoute, ClientRoute, DriverRoute, PhoneSide } from '../l
 export type SceneId =
   | 'landing' | 'signup' | 'home' | 'about' | 'directory' | 'browse' | 'detail' | 'checkout' | 'confirm' | 'track'
   | 'dLogin' | 'dRoutes' | 'dDetail' | 'dPickup' | 'dDeliver' | 'dDone' | 'dImpact'
-  | 'pGate' | 'pLogin' | 'pBrowse' | 'pDetail' | 'pConfirm' | 'pTrack' | 'pOrders'
+  | 'pGate' | 'pLogin' | 'pBrowse' | 'pPlaces' | 'pDetail' | 'pConfirm' | 'pTrack' | 'pOrders'
   | 'trackDone' | 'handoff' | 'tracked'
 
 export type View = 'split' | 'client' | 'driver'
@@ -56,6 +56,7 @@ export const SCENES: Scene[] = [
   { id: 'pGate',    label: 'One app, two jobs', note: 'driver or client',   group: 'Client portal', view: 'driver', side: 'gate' },
   { id: 'pLogin',   label: 'Client sign-in',  note: 'no eligibility check',  group: 'Client portal', view: 'driver', side: 'client', phone: { name: 'login' } },
   { id: 'pBrowse',  label: 'Near you',        note: 'the shelf, on a phone', group: 'Client portal', view: 'driver', side: 'client', phone: { name: 'browse' } },
+  { id: 'pPlaces',  label: 'Places near you', note: 'the directory, in hand', group: 'Client portal', view: 'driver', side: 'client', phone: { name: 'places' } },
   { id: 'pDetail',  label: 'Reserve',         note: 'stock, then the fork',  group: 'Client portal', view: 'driver', side: 'client', phone: { name: 'detail', id: 'l1' } },
   { id: 'pConfirm', label: 'Confirmed',       note: 'always $0.00',          group: 'Client portal', view: 'driver', side: 'client', phone: { name: 'confirm' }, needs: 'placed' },
   { id: 'pTrack',   label: 'Following it',    note: 'the same timeline',     group: 'Client portal', view: 'driver', side: 'client', phone: { name: 'track' }, needs: 'enroute' },
