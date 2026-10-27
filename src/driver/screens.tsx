@@ -4,7 +4,7 @@
    ============================================================ */
 import { useState } from 'react'
 import { Icon } from '../components/Icon'
-import { Mascot } from '../components/Mascot'
+import { LogoMedallion } from '../components/Logo'
 import { Badge, MapView, Tile } from '../components/ui'
 import { DPAD } from '../components/PhoneFrame'
 import { DAvatar, DHeader } from './DriverApp'
@@ -13,9 +13,12 @@ import type { GoDriver } from '../lib/nav'
 import { useStore } from '../lib/store'
 import type { Order, Provider } from '../lib/types'
 
+/* the screen scrolls behind this, which is the one place on the phone where
+   a blur is doing real work rather than tinting a flat fill */
 const footer: React.CSSProperties = {
-  padding: '12px 18px 30px', background: 'var(--surface)', borderTop: '1px solid var(--border)', flexShrink: 0,
+  padding: '12px 18px 30px', borderTop: '1px solid var(--edge)', flexShrink: 0, zIndex: 5,
 }
+const FOOTER_CLASS = 'eb-glass'
 
 /* ---------- route detail (pre-accept) ---------- */
 export function DDetail({ go, order }: { go: GoDriver; order?: Order }) {
@@ -51,7 +54,7 @@ export function DDetail({ go, order }: { go: GoDriver; order?: Order }) {
           </div>
         </div>
       </div>
-      <div style={footer}>
+      <div className={FOOTER_CLASS} style={footer}>
         <button className="eb-btn eb-btn-primary eb-btn-block" data-demo="d-accept" style={{ padding: 16 }}
           onClick={() => { acceptRoute(order.id); go('active', order.id) }}>
           Accept route — {prov.dist} mi
@@ -134,7 +137,7 @@ export function DActive({ go, order }: { go: GoDriver; order?: Order }) {
             ))}
           </div>
         </div>
-        <div style={footer}>
+        <div className={FOOTER_CLASS} style={footer}>
           <button className="eb-btn eb-btn-primary eb-btn-block" data-demo="d-confirm-pickup" style={{ padding: 16 }}
             disabled={!allChecked} onClick={() => driverPicked(order.id)}>
             {allChecked ? 'Confirm pickup' : `Check all items (${Object.values(checks).filter(Boolean).length}/${order.items.length})`}
@@ -189,7 +192,7 @@ export function DActive({ go, order }: { go: GoDriver; order?: Order }) {
               </div>
             )}
           </div>
-          <div style={footer}>
+          <div className={FOOTER_CLASS} style={footer}>
             {!arrived ? (
               <button className="eb-btn eb-btn-primary eb-btn-block" data-demo="d-arrived" style={{ padding: 16 }} onClick={() => setArrived(true)}>
                 <Icon name="pin" size={18} /> I’ve arrived
@@ -231,7 +234,7 @@ export function DActive({ go, order }: { go: GoDriver; order?: Order }) {
             <MapView height={150} route style={{ marginTop: 14 }} />
           </div>
         </div>
-        <div style={footer}>
+        <div className={FOOTER_CLASS} style={footer}>
           <button className="eb-btn eb-btn-primary eb-btn-block" data-demo="d-start" style={{ padding: 16 }} onClick={() => driverEnroute(order.id)}>
             <Icon name="nav" size={18} /> Start delivery to {order.name.split(' ')[0]}
           </button>
@@ -249,7 +252,7 @@ export function DDone({ go, order }: { go: GoDriver; order?: Order }) {
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: `${DPAD + 10}px 26px 34px`, background: 'var(--green-deep)' }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
         <div className="eb-pop" style={{ marginBottom: 16 }}>
-          <Mascot variant="ochre" size={176} />
+          <LogoMedallion size={140} tone="gold" />
         </div>
         <div className="eb-display" style={{ fontSize: 30, color: 'var(--on-green)' }}>Delivery complete!</div>
         <p style={{ color: 'oklch(0.90 0.04 145)', fontSize: 15.5, margin: '10px 0 26px', lineHeight: 1.5 }}>

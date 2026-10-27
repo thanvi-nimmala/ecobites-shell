@@ -19,11 +19,14 @@ export const ACCENTS = [
   { name: 'Clay brick',  value: '#b5683f' },
 ] as const
 
+/* Deliberately not the Google-trending shelf: Bricolage, Fraunces, Space Grotesk
+   and DM Serif all read as a generated template now. These four each argue
+   something — civic, editorial, agricultural, industrial. */
 export const DISPLAY_FONTS = {
-  'Bricolage Grotesque': `'Bricolage Grotesque', system-ui, sans-serif`,
-  'Fraunces':            `'Fraunces', Georgia, serif`,
-  'Space Grotesk':       `'Space Grotesk', system-ui, sans-serif`,
-  'DM Serif Display':    `'DM Serif Display', Georgia, serif`,
+  'Libre Franklin': `'Libre Franklin', system-ui, sans-serif`,
+  'Newsreader':     `'Newsreader', Georgia, serif`,
+  'Bitter':         `'Bitter', Georgia, serif`,
+  'Archivo':        `'Archivo', system-ui, sans-serif`,
 } as const
 
 export type DisplayFont = keyof typeof DISPLAY_FONTS
@@ -41,7 +44,7 @@ export interface Theme {
 export const DEFAULT_THEME: Theme = {
   primary: PRIMARIES[0].value,
   accent: ACCENTS[0].value,
-  display: 'Bricolage Grotesque',
+  display: 'Libre Franklin',
   radius: 18,
   imagery: 'photo',
 }

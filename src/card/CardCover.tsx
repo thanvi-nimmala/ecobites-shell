@@ -12,7 +12,8 @@ const W = 1040
 const H = 670
 
 const ACCENT = '#0d7049'
-const GROUND = '#eef6f1'
+/* the lightest ground from her reference — warm cream, not a green tint */
+const GROUND = '#f5f3e8'
 const INK = '#16150f'
 const MUTED = '#64736a'
 const RAIL = '#cfdbd4'
@@ -29,7 +30,7 @@ const CARD_W = 560
 const CARD_Y = 286
 const CARD_H = 258
 
-const UI = "'IBM Plex Sans', system-ui, sans-serif"
+const UI = "'Libre Franklin', system-ui, sans-serif"
 
 /** the tick, drawn rather than popped — 26px box at x,y */
 function Check({ p, x, y }: { p: number; x: number; y: number }) {

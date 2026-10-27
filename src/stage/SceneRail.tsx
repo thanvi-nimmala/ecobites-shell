@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Mascot } from '../components/Mascot'
+import { Logo } from '../components/Logo'
 import { GROUPS, SCENES, type SceneId } from './scenes'
 
 export function SceneRail({ active, onPick }: { active: SceneId; onPick: (id: SceneId) => void }) {
@@ -10,7 +10,7 @@ export function SceneRail({ active, onPick }: { active: SceneId; onPick: (id: Sc
     }}>
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <Mascot variant="green" size={38} bob={false} />
+          <Logo size={32} />
           <div>
             <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16.5, letterSpacing: '-0.02em' }}>EcoBites</div>
             <div className="mono-label" style={{ fontSize: 9 }}>frontend shell</div>

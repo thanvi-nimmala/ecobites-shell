@@ -32,7 +32,10 @@ export function Icon({ name, size = 22, stroke = 'currentColor', sw = 1.8, fill 
     user: <><circle cx="12" cy="8" r="3.6" {...P} /><path d="M5 20c1.2-3.8 4-5 7-5s5.8 1.2 7 5" {...P} /></>,
     heart: <path d="M12 20S4 14.5 4 8.8A4.3 4.3 0 0 1 12 6a4.3 4.3 0 0 1 8 2.8C20 14.5 12 20 12 20Z" {...P} />,
     star: <path d="M12 3.5 14.6 9l6 .7-4.5 4 1.3 5.9L12 16.7 6.6 19.6 7.9 13.7 3.4 9.7 9.4 9Z" {...P} />,
-    bag: <><path d="M6 8h12l-1 12H7Z" {...P} /><path d="M9 8a3 3 0 0 1 6 0" {...P} /></>,
+    /* a deep tapered bucket with a hoop over it reads as a waste bin, which is
+       the last thing a food-relief app should put next to "I need food" —
+       this is a tote: shallow taper, rounded base, handle posts off the rim */
+    bag: <><path d="M5.7 8h12.6l-1.05 11.1a1.8 1.8 0 0 1-1.79 1.63H8.54a1.8 1.8 0 0 1-1.79-1.63Z" {...P} /><path d="M9.3 8V6.6a2.7 2.7 0 0 1 5.4 0V8" {...P} /></>,
     box: <><path d="M12 3 4 7v10l8 4 8-4V7Z" {...P} /><path d="M4 7l8 4 8-4M12 11v10" {...P} /></>,
     phone: <><path d="M6 4h12v16H6zM10 18h4" {...P} /></>,
     nav: <path d="M12 2 22 22 12 17 2 22Z" {...P} />,

@@ -3,13 +3,22 @@
    ============================================================ */
 import { useEffect, useRef, useState } from 'react'
 import { Icon } from '../components/Icon'
-import { Mascot } from '../components/Mascot'
+import { Logo } from '../components/Logo'
 import { Badge, Tile } from '../components/ui'
+import { CheckerBand } from '../components/CheckerBand'
+import { Stamp } from '../components/Stamp'
 import { CATEGORIES, CLIENT, LISTINGS, PHOTO, listingPhoto, provider } from '../lib/data'
 import type { ClientRoute, GoClient } from '../lib/nav'
 import type { Listing } from '../lib/types'
 import { useStore } from '../lib/store'
-import { CBrowse, CCheckout, CConfirm, CDetail, CTrack } from './screens'
+import { CAbout, CBrowse, CCheckout, CConfirm, CDetail, CTrack } from './screens'
+import { CDirectory } from './directory'
+import { CSignup } from './signup'
+import { DirectoryNotice, DirectoryPrinted, type DirStyle } from './directory-styles'
+
+/* ?style=printed|notice swaps the directory for a visual-direction mockup,
+   built on the same data so the comparison is honest */
+const DIR_STYLE = new URLSearchParams(location.search).get('style') as DirStyle | null
 
 export function ClientApp({ route, go }: { route: ClientRoute; go: GoClient }) {
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -17,7 +26,12 @@ export function ClientApp({ route, go }: { route: ClientRoute; go: GoClient }) {
 
   const screens: Record<ClientRoute['name'], React.ReactNode> = {
     onboard:  <COnboard go={go} />,
+    signup:   <CSignup go={go} />,
     home:     <CHome go={go} />,
+    about:    <CAbout go={go} />,
+    directory: DIR_STYLE === 'printed' ? <DirectoryPrinted />
+      : DIR_STYLE === 'notice' ? <DirectoryNotice />
+      : <CDirectory go={go} />,
     browse:   <CBrowse go={go} cat={route.cat} />,
     detail:   <CDetail go={go} id={route.id} />,
     checkout: <CCheckout go={go} />,
@@ -25,35 +39,41 @@ export function ClientApp({ route, go }: { route: ClientRoute; go: GoClient }) {
     track:    <CTrack go={go} orderId={route.orderId} />,
   }
 
+  const chromed = route.name !== 'onboard'
   return (
-    <div className="eb-body" style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
-      {route.name !== 'onboard' && <CNav go={go} route={route} />}
-      <div ref={scrollRef} className="eb-scroll" style={{ flex: 1, minHeight: 0 }}>
+    <div className="eb-body eb-ground" style={{ height: '100%', position: 'relative' }}>
+      <div ref={scrollRef} className="eb-scroll" style={{ height: '100%' }}>
+        {/* the nav floats over this, so the first screenful needs clearance */}
+        {chromed && <div style={{ height: NAV_H }} aria-hidden />}
         <div key={route.name} className="eb-fade">{screens[route.name]}</div>
       </div>
+      {chromed && <CNav go={go} route={route} />}
     </div>
   )
 }
 
 /* ---------- nav ---------- */
+const NAV_H = 68  /* mirrored as --nav-h for sticky children */
+
 function CNav({ go, route }: { go: GoClient; route: ClientRoute }) {
   const { cartCount } = useStore()
-  const links: [ClientRoute['name'], string][] = [['home', 'Home'], ['browse', 'Browse food'], ['track', 'My orders']]
+  const links: [ClientRoute['name'], string][] = [['home', 'Home'], ['browse', 'Browse food'], ['directory', 'Directory'], ['about', 'About'], ['track', 'My orders']]
   return (
-    <header style={{
-      display: 'flex', alignItems: 'center', gap: 28, padding: '0 32px', height: 68,
-      background: 'var(--surface)', borderBottom: '1px solid var(--border)', flexShrink: 0, position: 'relative', zIndex: 10,
+    <header className="eb-glass" style={{
+      display: 'flex', alignItems: 'center', gap: 18, padding: '0 28px', height: NAV_H, whiteSpace: 'nowrap',
+      position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
+      borderBottom: '1px solid var(--edge)',
     }}>
       <button onClick={() => go('home')} data-demo="c-logo"
         style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-        <Mascot variant="green" size={40} bob={false} />
+        <Logo size={34} />
         <span className="eb-display" style={{ fontSize: 21 }}>EcoBites</span>
       </button>
       <nav style={{ display: 'flex', gap: 4, marginLeft: 8 }}>
         {links.map(([k, label]) => (
           <button key={k} onClick={() => go(k)} data-demo={`c-nav-${k}`} style={{
             background: route.name === k ? 'var(--green-tint)' : 'none', border: 'none', cursor: 'pointer',
-            fontSize: 15, fontWeight: 600, padding: '8px 14px', borderRadius: 99,
+            fontSize: 14.5, fontWeight: 600, padding: '8px 12px', borderRadius: 99, whiteSpace: 'nowrap',
             color: route.name === k ? 'var(--green-deep)' : 'var(--ink-2)',
           }}>{label}</button>
         ))}
@@ -63,8 +83,10 @@ function CNav({ go, route }: { go: GoClient; route: ClientRoute }) {
         <Icon name="pin" size={17} stroke="var(--green)" /> {CLIENT.zip}
       </div>
       <button onClick={() => go('checkout')} data-demo="c-cart" aria-label="Basket" style={{
-        position: 'relative', width: 42, height: 42, borderRadius: 99, border: '1.5px solid var(--border-2)',
-        background: 'var(--surface)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        position: 'relative', width: 42, height: 42, borderRadius: 99, border: '1px solid var(--edge-2)',
+        background: 'linear-gradient(180deg, var(--surface), color-mix(in oklch, var(--surface) 88%, var(--sand)))',
+        boxShadow: 'inset 0 1px 0 var(--hairline), var(--shadow-sm)',
+        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <Icon name="cart" size={20} stroke="var(--ink)" />
         {cartCount > 0 && (
@@ -88,10 +110,10 @@ function COnboard({ go }: { go: GoClient }) {
   const [email, setEmail] = useState('')
   const [zip, setZip] = useState('')
   return (
-    <div style={{ minHeight: '100%', display: 'grid', gridTemplateColumns: '1.05fr 1fr' }}>
+    <div style={{ minHeight: '100%', display: 'grid', gridTemplateColumns: '1.05fr 1fr', position: 'relative' }}>
       <div style={{ padding: '64px 64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: 620 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 40 }}>
-          <Mascot variant="green" size={52} bob={false} />
+          <Logo size={44} />
           <span className="eb-display" style={{ fontSize: 23 }}>EcoBites</span>
         </div>
         <Badge tone="clay" style={{ alignSelf: 'flex-start', marginBottom: 20 }}>
@@ -100,13 +122,13 @@ function COnboard({ go }: { go: GoClient }) {
         <h1 className="eb-display" style={{ fontSize: 52, margin: '0 0 18px' }}>Good food finds<br />its way home.</h1>
         <p style={{ fontSize: 18, lineHeight: 1.55, color: 'var(--ink-2)', margin: '0 0 32px', maxWidth: 470 }}>
           EcoBites connects you with surplus food from nearby pantries and food banks. Reserve a box,
-          choose pickup or delivery, and we’ll handle the rest — free.
+          choose pickup or delivery, and we’ll take it from there. It’s free, and it always will be.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 420 }}>
           <input className="eb-input" placeholder="Email address" value={email} onChange={(e) => setEmail(e.target.value)} />
           <div style={{ display: 'flex', gap: 10 }}>
             <input className="eb-input" placeholder="ZIP code" value={zip} onChange={(e) => setZip(e.target.value)} style={{ flex: 1 }} />
-            <button className="eb-btn eb-btn-primary" data-demo="c-find" onClick={() => go('home')} style={{ flexShrink: 0 }}>
+            <button className="eb-btn eb-btn-primary" data-demo="c-find" onClick={() => go('signup')} style={{ flexShrink: 0 }}>
               Find food near me <Icon name="arrowRight" size={18} />
             </button>
           </div>
@@ -118,7 +140,9 @@ function COnboard({ go }: { go: GoClient }) {
           Already have an account? <span style={{ color: 'var(--green-deep)', fontWeight: 600 }}>Sign in</span>
         </button>
         <div style={{ display: 'flex', gap: 28, marginTop: 44 }}>
-          {[['17M+', 'neighbors served'], ['120+', 'partner pantries'], ['$0', 'always free']].map(([n, l]) => (
+          {/* the statewide figure, not the national one: Feeding America's
+              Map the Meal Gap estimate for New Jersey, 2024 */}
+          {[['1.2M', 'neighbors in NJ'], ['120+', 'partner pantries'], ['$0', 'always free']].map(([n, l]) => (
             <div key={l}>
               <div className="eb-display" style={{ fontSize: 26, color: 'var(--green-deep)' }}>{n}</div>
               <div style={{ fontSize: 13.5, color: 'var(--ink-3)' }}>{l}</div>
@@ -126,13 +150,17 @@ function COnboard({ go }: { go: GoClient }) {
           ))}
         </div>
       </div>
+      <Stamp size={116} style={{
+        position: 'absolute', left: 'calc(51.2% - 58px)', top: 92, zIndex: 3,
+        filter: 'drop-shadow(0 8px 18px rgba(22,30,15,0.26))',
+      }} />
       <div style={{ position: 'relative', background: 'var(--green-tint)', overflow: 'hidden' }}>
         <Tile photo={PHOTO.communityTable} overlay="linear-gradient(180deg, rgba(42,46,30,0.14), rgba(42,46,30,0.30))"
           style={{ position: 'absolute', inset: 0 }} radius={0} />
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
           <div className="eb-card" style={{ width: 320, padding: 22, boxShadow: 'var(--shadow-lg)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-              <Tile photo={PHOTO.papayaOlive} category="produce" style={{ width: 54, height: 54 }} />
+              <Tile photo={PHOTO.produceCrate} category="produce" style={{ width: 54, height: 54 }} />
               <div>
                 <div style={{ fontWeight: 700, fontSize: 16 }}>Fresh Produce Box</div>
                 <div style={{ fontSize: 13, color: 'var(--ink-3)' }}>Community Food Bank of NJ</div>
@@ -146,7 +174,6 @@ function COnboard({ go }: { go: GoClient }) {
             <div className="eb-btn eb-btn-primary eb-btn-block" style={{ fontSize: 14, padding: 11 }}>Reserve free box</div>
           </div>
         </div>
-        <Mascot variant="green" size={176} style={{ position: 'absolute', left: 22, bottom: 0, filter: 'drop-shadow(0 10px 20px rgba(22,30,15,0.32))' }} />
       </div>
     </div>
   )
@@ -158,7 +185,7 @@ function CHome({ go }: { go: GoClient }) {
   return (
     <div style={{ padding: '0 0 56px' }}>
       <div style={{ position: 'relative', margin: '24px 32px 0', borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: 'var(--green-deep)' }}>
-        <Tile photo={PHOTO.abundance} radius={0}
+        <Tile photo={PHOTO.marketStall} radius={0}
           overlay="linear-gradient(95deg, rgba(34,40,24,0.90) 30%, rgba(34,40,24,0.52) 75%, rgba(34,40,24,0.34))"
           style={{ position: 'absolute', inset: 0 }} />
         <div style={{ position: 'relative', padding: '52px 48px', maxWidth: 640 }}>
@@ -166,18 +193,25 @@ function CHome({ go }: { go: GoClient }) {
             Fresh food, reserved in seconds.
           </h1>
           <p style={{ fontSize: 17, color: 'oklch(0.93 0.03 145)', margin: '0 0 26px', lineHeight: 1.5 }}>
-            Browse what’s available near you right now, from partner pantries and food banks.
+            Here’s what the pantries and food banks near you have on the shelf today. Take what you need.
           </p>
-          <div style={{ display: 'flex', gap: 10, maxWidth: 520, background: 'var(--surface)', padding: 7, borderRadius: 99, boxShadow: 'var(--shadow)' }}>
+          {/* sitting on the photograph, so this is glass rather than a white pill */}
+          <div className="eb-glass-dark" style={{
+            display: 'flex', gap: 10, maxWidth: 520, padding: 7, borderRadius: 99,
+            boxShadow: 'inset 0 1px 0 oklch(1 0 0 / .22), 0 10px 30px oklch(0.18 0.03 70 / .35)',
+          }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, padding: '0 14px' }}>
-              <Icon name="search" size={20} stroke="var(--ink-3)" />
+              <Icon name="search" size={20} stroke="oklch(0.90 0.03 145)" />
               <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search food or pantries…"
-                style={{ flex: 1, border: 'none', outline: 'none', background: 'none', fontSize: 15.5, color: 'var(--ink)' }} />
+                className="eb-hero-search"
+                style={{ flex: 1, border: 'none', outline: 'none', background: 'none', fontSize: 15.5, color: 'var(--on-green)' }} />
             </div>
             <button className="eb-btn eb-btn-primary" data-demo="c-search" onClick={() => go('browse', { q })}>Search</button>
           </div>
         </div>
       </div>
+
+      <CheckerBand tone="green" style={{ margin: '36px 0 0' }} />
 
       <div style={{ padding: '36px 32px 0' }}>
         <h2 className="eb-display" style={{ fontSize: 22, margin: '0 0 16px' }}>Browse by category</h2>
@@ -206,27 +240,54 @@ function CHome({ go }: { go: GoClient }) {
         </div>
       </div>
 
-      <div style={{ margin: '44px 32px 0', padding: '34px 40px', borderRadius: 'var(--radius-lg)', background: 'var(--surface)', border: '1px solid var(--border)' }}>
-        <h2 className="eb-display" style={{ fontSize: 22, margin: '0 0 24px' }}>How EcoBites works</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 30 }}>
+      <CheckerBand tone="sand" style={{ margin: '48px 0 0' }} />
+
+      {/* how it works — the instructional beat */}
+      <div style={{ padding: '44px 32px 0' }}>
+        <div style={{ fontSize: 12.5, fontWeight: 600, letterSpacing: '0.12em', color: 'var(--ink-3)', marginBottom: 10 }}>
+          HOW IT WORKS
+        </div>
+        <h2 className="eb-display" style={{ fontSize: 30, margin: '0 0 8px', maxWidth: '22ch' }}>
+          Three steps, no paperwork, no payment.
+        </h2>
+        <p style={{ fontSize: 15.5, color: 'var(--ink-2)', margin: '0 0 28px', maxWidth: '58ch', lineHeight: 1.6 }}>
+          Everything here is free. You do not prove anything, you do not join a queue, and you can
+          stop after step two if pickup suits you better.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 18 }}>
           {([
-            ['search', 'Find food nearby', 'Browse real-time surplus from pantries and food banks around you.'],
-            ['cart', 'Reserve your box', 'Join the waitlist and choose pickup or free delivery.'],
-            ['truck', 'Pick up or get it delivered', 'Track your order live as a volunteer driver brings it to your door.'],
-          ] as const).map(([ic, t, d], i) => (
-            <div key={t} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            ['01', 'search', 'Find food nearby',
+             'Browse real-time surplus from pantries and food banks around you, filtered by what you can actually eat.',
+             'You see only what is on the shelf right now.'],
+            ['02', 'cart', 'Reserve your box',
+             'Pick a quantity, then choose pickup or free delivery. No account wall, no payment, no eligibility form.',
+             'The food is held in your name.'],
+            ['03', 'truck', 'Track it to your door',
+             'A nearby volunteer claims the route. Every step they take lands on your tracker as it happens.',
+             'You always know where your food is.'],
+          ] as const).map(([n, ic, title, body, outcome]) => (
+            <div key={n} className="eb-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--green-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon name={ic} size={20} stroke="var(--green-deep)" />
-                </span>
-                <span className="eb-display" style={{ fontSize: 17, color: 'var(--ink-3)' }}>0{i + 1}</span>
+                <span className="eb-ichip"><Icon name={ic} size={17} stroke="var(--green-deep)" /></span>
+                <span className="eb-display" style={{ fontSize: 15, color: 'var(--ink-3)' }}>{n}</span>
               </div>
-              <div style={{ fontWeight: 700, fontSize: 16.5 }}>{t}</div>
-              <div style={{ fontSize: 14.5, color: 'var(--ink-2)', lineHeight: 1.5 }}>{d}</div>
+              <div style={{ fontWeight: 700, fontSize: 17 }}>{title}</div>
+              <div style={{ fontSize: 14.5, color: 'var(--ink-2)', lineHeight: 1.55, flex: 1 }}>{body}</div>
+              <div style={{
+                marginTop: 2, paddingTop: 12,
+                borderTop: '1.5px dashed color-mix(in oklch, var(--green) 30%, transparent)',
+                fontSize: 13.5, fontWeight: 600, color: 'var(--green-deep)',
+                display: 'flex', gap: 7, alignItems: 'flex-start',
+              }}>
+                <Icon name="arrowRight" size={15} stroke="var(--green-deep)" style={{ flexShrink: 0, marginTop: 2 }} />
+                {outcome}
+              </div>
             </div>
           ))}
         </div>
       </div>
+
+      <CheckerBand tone="gold" style={{ margin: '48px 0 0' }} />
     </div>
   )
 }

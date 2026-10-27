@@ -3,18 +3,21 @@
    ============================================================ */
 import { useState, type ReactNode } from 'react'
 import { Icon } from '../components/Icon'
-import { Mascot } from '../components/Mascot'
+import { Logo, LogoMedallion } from '../components/Logo'
 import { Badge, Tile } from '../components/ui'
-import { DPAD } from '../components/PhoneFrame'
+import { DPAD, useStatusInk } from '../components/PhoneFrame'
 import { DRIVER, ORDER_STAGES, PHOTO, listingPhoto, provider } from '../lib/data'
 import type { DriverRoute, DriverScreenName, GoDriver } from '../lib/nav'
 import { useStore } from '../lib/store'
 import type { Order } from '../lib/types'
 import { DActive, DDetail, DDone, DImpact } from './screens'
 
+/* every driver screen opens on something dark — the sign-in photograph, or
+   the header band — so the phone's status bar runs light throughout */
 export function DriverApp({ route, go }: { route: DriverRoute; go: GoDriver }) {
   const { orders } = useStore()
   const active = orders.find((o) => o.id === route.orderId)
+  useStatusInk('light')
 
   const screens: Record<DriverScreenName, ReactNode> = {
     login:  <DLogin go={go} />,
@@ -26,7 +29,7 @@ export function DriverApp({ route, go }: { route: DriverRoute; go: GoDriver }) {
   }
 
   return (
-    <div className="eb-body" style={{ height: '100%', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <div className="eb-body eb-ground" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div key={route.name} className="eb-fade" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         {screens[route.name]}
       </div>
@@ -39,19 +42,27 @@ export function DHeader({ title, sub, onBack, right }: {
   title: string; sub?: string; onBack?: () => void; right?: ReactNode
 }) {
   return (
-    <div style={{ padding: `${DPAD}px 20px 14px`, background: 'var(--surface)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+    <div style={{
+      padding: `${DPAD}px 20px 16px`, flexShrink: 0, zIndex: 5, position: 'relative',
+      /* A deep, lit band at the top. The app was uniformly cream, which gave it
+         no contrast to work with and nothing for the glass below to sit against. */
+      background:
+        'radial-gradient(120% 140% at 88% -30%, color-mix(in oklch, var(--green) 52%, transparent) 0%, transparent 62%),'
+        + 'linear-gradient(168deg, var(--green-deep) 0%, color-mix(in oklch, var(--green-deep) 78%, black) 100%)',
+      boxShadow: '0 1px 0 oklch(1 0 0 / .10) inset, 0 8px 22px oklch(0.25 0.04 140 / .22)',
+    }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {onBack && (
-          <button onClick={onBack} aria-label="Back" style={{
-            width: 38, height: 38, borderRadius: 99, border: '1.5px solid var(--border-2)', background: 'var(--surface)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
+          <button onClick={onBack} aria-label="Back" className="eb-glass-dark" style={{
+            width: 38, height: 38, borderRadius: 99, flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
           }}>
-            <Icon name="arrowLeft" size={19} />
+            <Icon name="arrowLeft" size={19} stroke="var(--on-green)" />
           </button>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="eb-display" style={{ fontSize: 22 }}>{title}</div>
-          {sub && <div style={{ fontSize: 13, color: 'var(--ink-3)', marginTop: 1 }}>{sub}</div>}
+          <div className="eb-display" style={{ fontSize: 22, color: 'var(--on-green)' }}>{title}</div>
+          {sub && <div style={{ fontSize: 13, color: 'oklch(0.88 0.04 145)', marginTop: 2 }}>{sub}</div>}
         </div>
         {right}
       </div>
@@ -61,8 +72,8 @@ export function DHeader({ title, sub, onBack, right }: {
 
 export function DAvatar() {
   return (
-    <div style={{
-      width: 40, height: 40, borderRadius: 99, background: 'var(--green-soft)', color: 'var(--green-deep)',
+    <div className="eb-glass-dark" style={{
+      width: 40, height: 40, borderRadius: 99, color: 'var(--on-green)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700,
     }}>{DRIVER.initials}</div>
   )
@@ -71,9 +82,9 @@ export function DAvatar() {
 function DTabBar({ screen, go }: { screen: DriverScreenName; go: GoDriver }) {
   const tabs: [DriverScreenName, string, string][] = [['routes', 'route', 'Routes'], ['impact', 'wallet', 'Impact']]
   return (
-    <div style={{
-      display: 'flex', padding: '8px 24px 26px', background: 'var(--surface)',
-      borderTop: '1px solid var(--border)', flexShrink: 0, justifyContent: 'space-around',
+    <div className="eb-glass" style={{
+      display: 'flex', padding: '8px 24px 26px',
+      borderTop: '1px solid var(--edge)', flexShrink: 0, justifyContent: 'space-around', zIndex: 5,
     }}>
       {tabs.map(([k, ic, label]) => (
         <button key={k} onClick={() => go(k)} data-demo={`d-tab-${k}`} style={{
@@ -95,14 +106,14 @@ function DLogin({ go }: { go: GoDriver }) {
       flex: 1, position: 'relative', display: 'flex', flexDirection: 'column',
       padding: `${DPAD + 20}px 26px 30px`, background: 'var(--green-deep)', overflow: 'hidden',
     }}>
-      <img src={PHOTO.citrusStack} alt="" draggable={false}
+      <img src={PHOTO.crateWarehouse} alt="" draggable={false}
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(30,36,18,0.40) 0%, rgba(28,34,18,0.66) 50%, rgba(24,30,16,0.93) 100%)' }} />
       <div style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <Mascot variant="green" size={78} style={{ marginBottom: 16 }} />
+        <Logo size={62} color="var(--on-green)" style={{ marginBottom: 16 }} />
         <div className="eb-display" style={{ fontSize: 32, color: 'var(--on-green)', lineHeight: 1.1 }}>EcoBites<br />Driver</div>
         <p style={{ color: 'oklch(0.90 0.04 145)', fontSize: 15.5, lineHeight: 1.5, margin: '12px 0 30px' }}>
-          Deliver rescued food to neighbors near you. Drive when you want.
+          Bring good food to neighbors near you. Drive when it suits you, skip when it doesn’t.
         </p>
         <input className="eb-input" placeholder="Phone number" style={{ marginBottom: 11 }} />
         <input className="eb-input" placeholder="Password" type="password" style={{ marginBottom: 20 }} />
@@ -152,10 +163,10 @@ function DRoutes({ go }: { go: GoDriver }) {
 
         {availableRoutes.length === 0 ? (
           <div className="eb-card" style={{ padding: '28px 20px', textAlign: 'center' }}>
-            <Mascot variant="clay" size={124} style={{ margin: '0 auto 6px' }} />
-            <div style={{ fontWeight: 700, fontSize: 16 }}>No routes right now</div>
+            <LogoMedallion size={112} tone="gold" style={{ margin: '0 auto 12px' }} />
+            <div style={{ fontWeight: 700, fontSize: 16 }}>Nothing to run just yet</div>
             <p style={{ fontSize: 13.5, color: 'var(--ink-2)', margin: '6px 0 0', lineHeight: 1.5 }}>
-              Place a <b>delivery</b> order on the client website and it’ll appear here to accept.
+              The moment someone nearby asks for a delivery, it’ll turn up here.
             </p>
           </div>
         ) : availableRoutes.map((o, i) => <DRouteCard key={o.id} order={o} go={go} first={i === 0} />)}

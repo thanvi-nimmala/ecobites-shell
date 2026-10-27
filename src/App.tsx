@@ -6,11 +6,12 @@ import { ImageryCtx } from './components/ui'
 import { Icon } from './components/Icon'
 
 import { ClientApp } from './client/ClientApp'
+import { ClientPhoneApp, PhoneGate } from './client/ClientPhoneApp'
 import { DriverApp } from './driver/DriverApp'
 
 import { StoreProvider, useStore } from './lib/store'
 import { DEFAULT_THEME, applyTheme, type Theme } from './lib/theme'
-import type { ClientRoute, DriverRoute } from './lib/nav'
+import type { ClientPhoneRoute, ClientRoute, DriverRoute, PhoneSide } from './lib/nav'
 import type { Order, StageKey } from './lib/types'
 
 import { DemoBar } from './stage/DemoBar'
@@ -22,6 +23,8 @@ import { SCENES, sceneById, type OrderLevel, type SceneId, type View } from './s
 import { DemoCursor } from './demo/DemoCursor'
 import { CardCover, CardCoverLive } from './card/CardCover'
 import { useDemoRunner } from './demo/useDemoRunner'
+import { COVER, COVER_SIZE, REEL_ID, REEL_SHOT, hasCaption } from './demo/capture'
+import { PHOTO } from './lib/data'
 
 /* ?card renders the portfolio card cover alone. ?card&t=<seconds> freezes it at one
    instant, which is how the frame renderer walks the loop. */
@@ -36,6 +39,24 @@ if (CARD) document.documentElement.dataset.card = '1'
 
 /* the still sizes the portfolio and the deck expect */
 const SHOT_WEB = { w: 920, h: 720 }
+/* ?h=<px> overrides the artboard height, for reviewing a whole long page */
+const SHOT_H = Number(new URLSearchParams(location.search).get('h')) || 0
+/* every photo the reels can reach, warmed before capture so no frame is
+   rendered against a half-decoded image */
+if (REEL_SHOT) {
+  window.__preloadImages = () =>
+    Promise.all(
+      Object.values(PHOTO).map(
+        (src) =>
+          new Promise<void>((res) => {
+            const img = new Image()
+            img.onload = img.onerror = () => res()
+            img.src = src
+          }),
+      ),
+    ).then((a) => a.length)
+}
+
 /* ?plate=1 puts the device on a 16:10 field, for frames that crop to landscape */
 const PLATE = new URLSearchParams(location.search).get('plate') !== null
 const SHOT_PLATE = { w: 1600, h: 1000 }
@@ -75,9 +96,12 @@ function Stage() {
 
 function Shell({ theme, set }: { theme: Theme; set: <K extends keyof Theme>(k: K, v: Theme[K]) => void }) {
   const store = useStore()
-  const [view, setView] = useState<View>(SHOT_SCENE?.view ?? 'split')
+  const [view, setView] = useState<View>(REEL_SHOT?.view ?? SHOT_SCENE?.view ?? 'split')
   const [clientRoute, setClientRoute] = useState<ClientRoute>(SHOT_SCENE?.client ?? { name: 'onboard' })
   const [driverRoute, setDriverRoute] = useState<DriverRoute>(SHOT_SCENE?.driver ?? { name: 'login' })
+  /* the phone is one app with two front doors; `side` says which is open */
+  const [side, setSide] = useState<PhoneSide>(SHOT_SCENE?.side ?? 'driver')
+  const [phoneRoute, setPhoneRoute] = useState<ClientPhoneRoute>(SHOT_SCENE?.phone ?? { name: 'login' })
   const [recording, setRecording] = useState(false)
 
   const orderRef = useRef<string | null>(null)
@@ -122,14 +146,18 @@ function Shell({ theme, set }: { theme: Theme; set: <K extends keyof Theme>(k: K
     const oid = s.needs && s.needs !== 'none' ? ensureOrder(s.needs) : undefined
     if (s.cart) ensureCart()
     setView(s.view)
+    setSide(s.side ?? (s.view === 'driver' ? 'driver' : side))
     if (s.client) setClientRoute({ ...s.client, orderId: s.client.orderId ?? oid })
     if (s.driver) setDriverRoute({ ...s.driver, orderId: s.driver.orderId ?? oid })
-  }, [ensureOrder, ensureCart])
+    if (s.phone) setPhoneRoute({ ...s.phone, orderId: s.phone.orderId ?? oid })
+  }, [ensureOrder, ensureCart, side])
 
   const goClient = useCallback<(name: ClientRoute['name'], params?: Omit<ClientRoute, 'name'>) => void>(
     (name, params) => setClientRoute({ name, ...params }), [])
   const goDriver = useCallback<(name: DriverRoute['name'], orderId?: string) => void>(
-    (name, orderId) => setDriverRoute((r) => ({ name, orderId: orderId ?? r.orderId })), [])
+    (name, orderId) => { setSide('driver'); setDriverRoute((r) => ({ name, orderId: orderId ?? r.orderId })) }, [])
+  const goPhone = useCallback<(name: ClientPhoneRoute['name'], params?: Omit<ClientPhoneRoute, 'name'>) => void>(
+    (name, params) => { setSide('client'); setPhoneRoute((r) => ({ name, orderId: r.orderId, ...params })) }, [])
 
   const reset = useCallback(() => {
     store.resetDemo()
@@ -137,6 +165,8 @@ function Shell({ theme, set }: { theme: Theme; set: <K extends keyof Theme>(k: K
     seedRef.current = null
     setClientRoute({ name: 'onboard' })
     setDriverRoute({ name: 'login' })
+    setSide('driver')
+    setPhoneRoute({ name: 'login' })
   }, [store])
 
   /* which rail entry is lit is derived from where the two apps actually
@@ -145,6 +175,17 @@ function Shell({ theme, set }: { theme: Theme; set: <K extends keyof Theme>(k: K
     const order = store.orders.find((o) => o.id === driverRoute.orderId) ?? store.orders[0]
     if (view === 'split') return clientRoute.name === 'track' ? 'tracked' : 'handoff'
     if (view === 'driver') {
+      if (side === 'gate') return 'pGate'
+      if (side === 'client') {
+        switch (phoneRoute.name) {
+          case 'login': return 'pLogin'
+          case 'browse': return 'pBrowse'
+          case 'detail': return 'pDetail'
+          case 'confirm': return 'pConfirm'
+          case 'track': return 'pTrack'
+          case 'orders': return 'pOrders'
+        }
+      }
       switch (driverRoute.name) {
         case 'login': return 'dLogin'
         case 'routes': return 'dRoutes'
@@ -156,16 +197,38 @@ function Shell({ theme, set }: { theme: Theme; set: <K extends keyof Theme>(k: K
     }
     switch (clientRoute.name) {
       case 'onboard': return 'landing'
+      case 'signup': return 'signup'
       case 'home': return 'home'
+      case 'about': return 'about'
+      case 'directory': return 'directory'
       case 'browse': return 'browse'
       case 'detail': return 'detail'
       case 'checkout': return 'checkout'
       case 'confirm': return 'confirm'
       case 'track': return 'track'
     }
-  }, [view, clientRoute, driverRoute, store.orders])
+  }, [view, clientRoute, driverRoute, side, phoneRoute, store.orders])
 
-  const demo = useDemoRunner({ scene: goto, client: goClient, driver: goDriver, view: setView, set, reset })
+  const demo = useDemoRunner({
+    scene: goto, client: goClient, driver: goDriver, phone: goPhone, side: setSide,
+    view: setView, set, reset,
+  })
+
+  /* Reel capture hands control to the frame renderer: nothing plays until
+     __startReel() is called, and __reelDone flips once the reel has run out.
+     Autoplaying here instead would burn reel time during the page's boot. */
+  const reelStarted = useRef(false)
+  useEffect(() => {
+    if (!REEL_ID || !REEL_SHOT) return
+    const id = REEL_ID
+    window.__startReel = () => { window.__reelDone = false; demo.play(id) }
+    window.__reelReady = true
+  }, [demo.play])
+  useEffect(() => {
+    if (!REEL_SHOT) return
+    if (demo.activeId) reelStarted.current = true
+    else if (reelStarted.current) window.__reelDone = true
+  }, [demo.activeId])
 
   /* the surfaces have fixed layout boxes — scale them to whatever room
      the stage column actually has rather than guessing with breakpoints */
@@ -220,7 +283,10 @@ function Shell({ theme, set }: { theme: Theme; set: <K extends keyof Theme>(k: K
   }, [scene, goto, demo, reset])
 
   const client = <ClientApp route={clientRoute} go={goClient} />
-  const driver = <DriverApp route={driverRoute} go={goDriver} />
+  const driver =
+    side === 'gate' ? <PhoneGate onDriver={() => goDriver('login')} onClient={() => goPhone('login')} />
+    : side === 'client' ? <ClientPhoneApp route={phoneRoute} go={goPhone} />
+    : <DriverApp route={driverRoute} go={goDriver} />
 
   /* ── still capture ─────────────────────────────────────── */
   if (SHOT_SCENE) {
@@ -244,8 +310,74 @@ function Shell({ theme, set }: { theme: Theme; set: <K extends keyof Theme>(k: K
       )
     }
     return (
-      <div style={{ width: SHOT_WEB.w, height: SHOT_WEB.h, overflow: 'hidden' }}>
+      <div style={{ width: SHOT_WEB.w, height: SHOT_H || SHOT_WEB.h, overflow: 'hidden' }}>
         <BrowserFrame url="ecobites.org" flush>{client}</BrowserFrame>
+      </div>
+    )
+  }
+
+  /* ── thumbnail plate ───────────────────────────────────
+     Both surfaces on a 16:10 field, overlapping, so the card reads as a
+     service with two front doors at the size a gallery tile allows. */
+  if (COVER) {
+    const WEB = 0.62
+    const PHONE = 0.52
+    return (
+      <div style={{
+        position: 'relative', width: COVER_SIZE.w, height: COVER_SIZE.h, overflow: 'hidden',
+        background: 'radial-gradient(120% 110% at 26% 10%, #fbf9f1, #f1eee0 72%)',
+      }}>
+        <div style={{ position: 'absolute', left: 58, top: 56, width: 1280 * WEB, height: 820 * WEB }}>
+          <div style={{ width: 1280, height: 820, transform: `scale(${WEB})`, transformOrigin: 'top left' }}>
+            <BrowserFrame url="ecobites.org">
+              <ClientApp route={{ name: 'onboard' }} go={goClient} />
+            </BrowserFrame>
+          </div>
+        </div>
+        <div style={{ position: 'absolute', right: 56, bottom: -58, width: 424 * PHONE, height: 896 * PHONE }}>
+          <div style={{ width: 424, height: 896, transform: `scale(${PHONE})`, transformOrigin: 'top left' }}>
+            <PhoneFrame>
+              <PhoneGate onDriver={() => {}} onClient={() => {}} />
+            </PhoneFrame>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  /* ── reel capture ──────────────────────────────────────
+     The same surfaces on a fixed artboard, with the rail, the token panel
+     and the demo bar gone. Only the caption and the pointer survive. */
+  if (REEL_SHOT) {
+    return (
+      <div style={{
+        position: 'relative', width: REEL_SHOT.w, height: REEL_SHOT.h, overflow: 'hidden',
+        background: '#fff', padding: '26px 30px 0', boxSizing: 'border-box',
+      }}>
+        <div style={{ width: design.w, height: design.h }}>
+          <Surfaces view={view} client={client} driver={driver} />
+        </div>
+        {hasCaption(REEL_SHOT.view) && (
+          <div style={{
+            height: 50, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            opacity: demo.caption ? 1 : 0, transition: 'opacity .3s',
+          }}>
+            <span style={{
+              fontFamily: 'var(--font-mono)', fontSize: 21, letterSpacing: '.02em',
+              color: 'rgba(0,0,0,.42)', textAlign: 'center',
+            }}>
+              {demo.caption}
+            </span>
+          </div>
+        )}
+        {/* a toast floats at the top of the viewport, which on a phone artboard
+            means straight across the device's own status bar */}
+        {REEL_SHOT.view !== 'driver' && <Toasts />}
+        <DemoCursor pos={demo.cursor} tapKey={demo.tapKey} />
+        {/* Keeps one repaint always pending — see eb-reel-tick in index.css.
+            Without it the headless capture blocks on any frame that is
+            identical to the one before it. */}
+        <div id="__tick" aria-hidden style={{ position: 'fixed', right: 0, bottom: 0, width: 2, height: 2, background: '#fff' }} />
       </div>
     )
   }
@@ -254,21 +386,7 @@ function Shell({ theme, set }: { theme: Theme; set: <K extends keyof Theme>(k: K
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%', overflow: 'hidden' }}>
-      {/* stage backdrop */}
-      <div aria-hidden style={{
-        position: 'absolute', inset: 0,
-        background:
-          'radial-gradient(1100px 640px at 50% 34%, color-mix(in oklch, var(--green) 22%, transparent), transparent 70%),' +
-          'radial-gradient(820px 480px at 14% 92%, color-mix(in oklch, var(--clay) 14%, transparent), transparent 68%),' +
-          'var(--stage-deep)',
-      }} />
-      <div aria-hidden style={{
-        position: 'absolute', inset: 0, opacity: 0.55,
-        backgroundImage: 'radial-gradient(oklch(1 0 0 / .05) 1px, transparent 1px)',
-        backgroundSize: '26px 26px',
-        maskImage: 'radial-gradient(closest-side at 50% 45%, transparent 30%, black 88%)',
-        WebkitMaskImage: 'radial-gradient(closest-side at 50% 45%, transparent 30%, black 88%)',
-      }} />
+      <StageBackdrop />
 
       <div className={`stage${recording ? ' recording' : ''}`} style={{ position: 'relative', height: '100%', display: 'flex' }}>
         <div className="rail"><SceneRail active={scene} onPick={goto} /></div>
@@ -288,13 +406,7 @@ function Shell({ theme, set }: { theme: Theme; set: <K extends keyof Theme>(k: K
 
           <div style={{ width: design.w * scale, height: design.h * scale, flexShrink: 0 }}>
             <div style={{ width: design.w, height: design.h, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-              {view === 'split' && <SplitStage client={client} driver={driver} />}
-              {view === 'client' && <BrowserFrame url="ecobites.org">{client}</BrowserFrame>}
-              {view === 'driver' && (
-                <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <PhoneFrame>{driver}</PhoneFrame>
-                </div>
-              )}
+              <Surfaces view={view} client={client} driver={driver} />
             </div>
           </div>
 
@@ -326,6 +438,40 @@ function Shell({ theme, set }: { theme: Theme; set: <K extends keyof Theme>(k: K
   )
 }
 
+/* Whichever surfaces the current view calls for, at their design size.
+   Shared by the stage and by reel capture so a recording cannot drift
+   from what the stage shows. */
+function Surfaces({ view, client, driver }: { view: View; client: React.ReactNode; driver: React.ReactNode }) {
+  if (view === 'split') return <SplitStage client={client} driver={driver} />
+  if (view === 'client') return <BrowserFrame url="ecobites.org">{client}</BrowserFrame>
+  return (
+    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <PhoneFrame>{driver}</PhoneFrame>
+    </div>
+  )
+}
+
+function StageBackdrop() {
+  return (
+    <>
+      <div aria-hidden style={{
+        position: 'absolute', inset: 0,
+        background:
+          'radial-gradient(1100px 640px at 50% 34%, color-mix(in oklch, var(--green) 22%, transparent), transparent 70%),' +
+          'radial-gradient(820px 480px at 14% 92%, color-mix(in oklch, var(--clay) 14%, transparent), transparent 68%),' +
+          'var(--stage-deep)',
+      }} />
+      <div aria-hidden style={{
+        position: 'absolute', inset: 0, opacity: 0.55,
+        backgroundImage: 'radial-gradient(oklch(1 0 0 / .05) 1px, transparent 1px)',
+        backgroundSize: '26px 26px',
+        maskImage: 'radial-gradient(closest-side at 50% 45%, transparent 30%, black 88%)',
+        WebkitMaskImage: 'radial-gradient(closest-side at 50% 45%, transparent 30%, black 88%)',
+      }} />
+    </>
+  )
+}
+
 /* Both surfaces at once. The split is the argument: an order placed on
    the left becomes work on the right, and the right moves the left. */
 function SplitStage({ client, driver }: { client: React.ReactNode; driver: React.ReactNode }) {
@@ -348,6 +494,9 @@ function SplitStage({ client, driver }: { client: React.ReactNode; driver: React
 }
 
 function SurfaceLabel({ icon, label, note }: { icon: string; label: string; note: string }) {
+  /* stage furniture, and lit for a dark stage — a reel is cropped to the
+     surfaces themselves, so it carries no labels */
+  if (REEL_SHOT) return null
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 12, paddingLeft: 4, color: 'var(--stage-text)' }}>
       <Icon name={icon} size={17} stroke="var(--green)" />

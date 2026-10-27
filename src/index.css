@@ -40,17 +40,46 @@
   --berry:     oklch(0.540 0.120 18);
 
   /* ── shape ── */
+  /* the website's nav floats over the content, so anything sticky has to
+     clear it rather than slide underneath */
+  --nav-h: 68px;
   --radius:    18px;
   --radius-sm: 12px;
   --radius-lg: 26px;
 
-  --shadow-sm: 0 1px 2px oklch(0.4 0.03 80 / 0.06), 0 2px 6px oklch(0.4 0.03 80 / 0.05);
-  --shadow:    0 2px 6px oklch(0.4 0.03 80 / 0.07), 0 12px 28px oklch(0.4 0.03 80 / 0.09);
-  --shadow-lg: 0 8px 20px oklch(0.4 0.03 80 / 0.10), 0 30px 60px oklch(0.4 0.03 80 / 0.13);
+  /* Light, not outlines. Separation used to come from a tinted 1.5px stroke on
+     a flat ground, which is what made the UI read as drawn boxes rather than
+     as a surface — these are layered so a card has both a contact shadow and
+     an ambient one, the way a real sheet of paper does. */
+  --shadow-sm: 0 1px 1.5px oklch(0.38 0.03 70 / 0.07), 0 2px 5px oklch(0.38 0.03 70 / 0.05);
+  --shadow:    0 1px 2px oklch(0.38 0.03 70 / 0.08), 0 6px 16px oklch(0.38 0.03 70 / 0.08), 0 14px 34px oklch(0.38 0.03 70 / 0.07);
+  --shadow-lg: 0 2px 4px oklch(0.38 0.03 70 / 0.08), 0 14px 32px oklch(0.38 0.03 70 / 0.11), 0 36px 72px oklch(0.38 0.03 70 / 0.13);
+
+  /* ── material ──
+     A hairline of light along the top edge is what sells a surface as lit
+     from above; the border is a neutral low-alpha line rather than a tinted
+     stroke, so colour never does the job that value should. */
+  --hairline: oklch(1 0 0 / 0.85);
+  --edge:     oklch(0.70 0.020 78 / 0.30);
+  --edge-2:   oklch(0.66 0.022 78 / 0.46);
+
+  /* ── glass ──
+     Only for chrome that content actually travels behind: the nav, phone
+     headers, tab bars, sticky action bars, and panels laid over photography.
+     Blur with nothing behind it is just a flat fill with a performance cost. */
+  --glass:       oklch(0.995 0.006 90 / 0.70);
+  --glass-2:     oklch(0.995 0.006 90 / 0.82);
+  --glass-edge:  oklch(1 0 0 / 0.70);
+  --glass-blur:  saturate(1.7) blur(20px);
+  /* the variant the client portal's gate uses, over a dark photograph */
+  --glass-dark:      oklch(1 0 0 / 0.13);
+  --glass-dark-edge: oklch(1 0 0 / 0.30);
 
   /* ── type ── */
-  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
-  --font-body:    'Hanken Grotesk', system-ui, sans-serif;
+  /* One family, used with discipline. Franklin Gothic lineage — American
+     newspapers and public notices, which is the register this service wants. */
+  --font-display: 'Libre Franklin', system-ui, sans-serif;
+  --font-body:    'Libre Franklin', system-ui, sans-serif;
   --font-mono:    'JetBrains Mono', ui-monospace, monospace;
 
   /* ── stage chrome (the case-study frame around the product) ── */
@@ -80,8 +109,19 @@ body {
 button, input { font-family: inherit; color: inherit; }
 a { color: inherit; }
 
-.eb-display { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.02em; line-height: 1.04; color: var(--ink); }
+.eb-display { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.025em; line-height: 1.04; color: var(--ink); }
 .eb-body { font-family: var(--font-body); color: var(--ink); }
+
+/* ── ground ──
+   Flat cream gave a card nothing to lift off and glass nothing to blur. This
+   is lit from above and settles toward the sand at the bottom, so elevation
+   has somewhere to read against. Still driven by --bg, so the design control
+   keeps working. */
+.eb-ground {
+  background:
+    radial-gradient(135% 72% at 50% -12%, color-mix(in oklch, var(--surface) 94%, white) 0%, transparent 62%),
+    linear-gradient(180deg, var(--bg) 0%, color-mix(in oklch, var(--bg) 86%, var(--sand)) 100%);
+}
 
 .mono-label {
   font-family: var(--font-mono); font-size: 9.5px; font-weight: 500;
@@ -97,13 +137,30 @@ a { color: inherit; }
   white-space: nowrap; line-height: 1;
 }
 .eb-btn:active { transform: translateY(1px) scale(0.99); }
-.eb-btn-primary { background: var(--green); color: var(--on-green); box-shadow: 0 1px 2px oklch(0.4 0.05 150 / 0.2); }
-.eb-btn-primary:hover { background: var(--green-700); box-shadow: 0 4px 14px color-mix(in oklch, var(--green) 40%, transparent); }
-.eb-btn-clay { background: var(--clay); color: #fff; }
-.eb-btn-clay:hover { background: var(--clay-deep); }
-.eb-btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--border-2); }
-.eb-btn-ghost:hover { background: var(--surface-2); border-color: var(--ink-3); }
-.eb-btn-soft { background: var(--green-soft); color: var(--green-deep); }
+.eb-btn-primary {
+  background: linear-gradient(180deg, color-mix(in oklch, var(--green) 88%, white) 0%, var(--green) 55%, var(--green-700) 100%);
+  color: var(--on-green);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.25), 0 1px 2px color-mix(in oklch, var(--green) 45%, transparent),
+              0 6px 16px color-mix(in oklch, var(--green) 28%, transparent);
+}
+.eb-btn-primary:hover {
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.3), 0 2px 4px color-mix(in oklch, var(--green) 45%, transparent),
+              0 10px 26px color-mix(in oklch, var(--green) 38%, transparent);
+}
+.eb-btn-clay {
+  background: linear-gradient(180deg, color-mix(in oklch, var(--clay) 88%, white) 0%, var(--clay) 55%, var(--clay-deep) 100%);
+  color: #fff;
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.26), 0 1px 2px color-mix(in oklch, var(--clay) 45%, transparent),
+              0 6px 16px color-mix(in oklch, var(--clay) 28%, transparent);
+}
+.eb-btn-clay:hover { box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.3), 0 10px 26px color-mix(in oklch, var(--clay) 38%, transparent); }
+.eb-btn-ghost {
+  background: linear-gradient(180deg, var(--surface), color-mix(in oklch, var(--surface) 88%, var(--sand)));
+  color: var(--ink); border: 1px solid var(--edge-2);
+  box-shadow: inset 0 1px 0 var(--hairline), var(--shadow-sm);
+}
+.eb-btn-ghost:hover { border-color: var(--ink-3); }
+.eb-btn-soft { background: var(--green-soft); color: var(--green-deep); box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.5); }
 .eb-btn:disabled { opacity: .45; cursor: not-allowed; }
 .eb-btn-block { width: 100%; }
 
@@ -111,33 +168,97 @@ a { color: inherit; }
 .eb-chip {
   font-family: var(--font-body); font-weight: 500; font-size: 13.5px;
   border-radius: 99px; padding: 8px 15px; cursor: pointer;
-  border: 1.5px solid var(--border-2); background: var(--surface); color: var(--ink-2);
+  border: 1px solid var(--edge-2); color: var(--ink-2);
+  background: linear-gradient(180deg, var(--surface), color-mix(in oklch, var(--surface) 90%, var(--sand)));
+  box-shadow: inset 0 1px 0 var(--hairline), var(--shadow-sm);
   transition: all .14s ease; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
 }
 .eb-chip:hover { border-color: var(--ink-3); color: var(--ink); }
-.eb-chip[data-active="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.eb-chip[data-active="true"] {
+  background: linear-gradient(180deg, color-mix(in oklch, var(--ink) 88%, white), var(--ink));
+  border-color: var(--ink); color: var(--bg);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.22), var(--shadow-sm);
+}
 
 /* ── cards ── */
+/* A card is a lit surface, not a drawn rectangle: a faint top-down gradient,
+   a hairline of light on the top edge, a neutral hairline border and a
+   layered shadow. .eb-card-raised lifts it further for things that genuinely
+   float — the landing card over a photograph, toasts, popovers. */
 .eb-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); box-shadow: var(--shadow-sm);
-  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+  background: linear-gradient(177deg, var(--surface) 0%, color-mix(in oklch, var(--surface) 90%, var(--sand)) 100%);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 1px 0 var(--hairline), var(--shadow-sm);
+  transition: transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .18s ease, border-color .18s ease;
 }
-.eb-card-hover:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--border-2); }
+.eb-card-hover:hover {
+  transform: translateY(-2px);
+  border-color: var(--edge-2);
+  box-shadow: inset 0 1px 0 var(--hairline), var(--shadow);
+}
+.eb-card-raised { box-shadow: inset 0 1px 0 var(--hairline), var(--shadow-lg); }
+
+/* ── glass ──
+   Chrome that content scrolls behind. Both variants carry an inner top
+   highlight, which is the edge that makes a translucent panel read as a
+   pane of something rather than as a tint. */
+.eb-glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-edge);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.65);
+}
+.eb-glass-solid { background: var(--glass-2); }
+.eb-glass-dark {
+  background: var(--glass-dark);
+  -webkit-backdrop-filter: saturate(1.3) blur(7px);
+  backdrop-filter: saturate(1.3) blur(7px);
+  border: 1.5px solid var(--glass-dark-edge);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.18);
+}
+
+/* ---- icon chip: the small tinted square that labels a card ---- */
+.eb-ichip {
+  width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(180deg, color-mix(in oklch, var(--green) 14%, var(--surface)), var(--green-tint));
+  border: 1px solid color-mix(in oklch, var(--green) 22%, transparent);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.7);
+}
+
+/* ---- checkerboard band: the section divider ---- */
+.eb-checker {
+  --sq: 13px;
+  height: calc(var(--sq) * 2);
+  width: 100%;
+  flex-shrink: 0;
+  background-color: transparent;
+  background-image:
+    linear-gradient(45deg, var(--checker) 25%, transparent 25% 75%, var(--checker) 75%),
+    linear-gradient(45deg, var(--checker) 25%, transparent 25% 75%, var(--checker) 75%);
+  background-size: calc(var(--sq) * 2) calc(var(--sq) * 2);
+  background-position: 0 0, var(--sq) var(--sq);
+}
 
 /* ── inputs ── */
 .eb-input {
   font-family: var(--font-body); font-size: 15px; color: var(--ink);
   width: 100%; padding: 13px 16px; border-radius: var(--radius-sm);
-  border: 1.5px solid var(--border-2); background: var(--surface);
+  border: 1px solid var(--edge-2); background: color-mix(in oklch, var(--surface) 92%, var(--sand));
+  box-shadow: inset 0 1.5px 3px oklch(0.4 0.03 70 / 0.07);
   transition: border-color .15s ease, box-shadow .15s ease; outline: none;
 }
 .eb-input::placeholder { color: var(--ink-3); }
+/* the hero search is glass on a photograph, so its placeholder is light */
+.eb-hero-search::placeholder { color: oklch(0.90 0.03 145 / 0.78); }
 .eb-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px color-mix(in oklch, var(--green) 18%, transparent); }
 
 /* ── badge ── */
 .eb-badge {
   font-family: var(--font-body); font-weight: 600; font-size: 12px; letter-spacing: 0.01em;
+  white-space: nowrap;
   padding: 4px 10px; border-radius: 99px; display: inline-flex; align-items: center; gap: 5px; line-height: 1.2;
 }
 
@@ -183,7 +304,30 @@ a { color: inherit; }
 :root[data-shot] .eb-scroll::-webkit-scrollbar { width: 0; height: 0; }
 :root[data-shot] .eb-scroll { scrollbar-width: none; }
 
+/* ═══ reel capture (?reel=<id>) — a fixed artboard, no stage chrome ═══ */
+:root[data-reel] body { background: #fff; }
+:root[data-reel] #root { position: static; inset: auto; }
+:root[data-reel] .eb-scroll::-webkit-scrollbar { width: 0; height: 0; }
+:root[data-reel] .eb-scroll { scrollbar-width: none; }
+/* A frame that changed nothing is never composited, and the headless capture
+   then waits for it forever. This keeps one always-running repaint on the
+   page so every advance of the virtual clock still produces a frame; it is a
+   2px corner square shifting by one value, which the downscale erases. */
+@keyframes eb-reel-tick { 0% { background: #ffffff; } 50% { background: #fffffe; } 100% { background: #ffffff; } }
+:root[data-reel] #__tick { animation: eb-reel-tick 66ms steps(2, end) infinite; }
+
+/* ═══ portfolio thumbnail plate (?cover) — a 16:10 field ═══ */
+:root[data-cover] body { background: #f5f3e8; }
+:root[data-cover] #root { position: static; inset: auto; }
+:root[data-cover] .eb-scroll::-webkit-scrollbar { width: 0; height: 0; }
+:root[data-cover] .eb-scroll { scrollbar-width: none; }
+
 /* ═══ portfolio card cover (?card) — exact 1040x670 artboard ═══ */
-:root[data-card] body { background: #eef6f1; overflow: hidden; }
+:root[data-card] body { background: #f5f3e8; overflow: hidden; }
 :root[data-card] #root { position: static; inset: auto; }
 :root[data-card] svg { display: block; }
+
+/* ---- the stamp turns slowly; stillness is fine if motion is unwelcome ---- */
+@keyframes eb-stamp-spin { to { transform: rotate(360deg); } }
+.eb-stamp-spin { animation: eb-stamp-spin 24s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .eb-stamp-spin { animation: none; } }

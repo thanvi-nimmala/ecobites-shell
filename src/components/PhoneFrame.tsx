@@ -1,17 +1,31 @@
-/* An iPhone-sized stage for the driver app. */
-import type { ReactNode } from 'react'
+/* An iPhone-sized stage for both sides of the phone app. */
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 
 export const PHONE_W = 402
 export const PHONE_H = 874
 /** every driver screen pads its header past the status bar by this much */
 export const DPAD = 54
 
-function StatusBar() {
+/* The status bar is drawn by the phone, above whatever screen is showing, so
+   it cannot read a CSS variable the screen sets — a screen is its descendant,
+   not its ancestor. Screens declare their top tone through this instead. */
+export type StatusInk = 'dark' | 'light'
+const StatusInkCtx = createContext<(ink: StatusInk) => void>(() => {})
+
+/** Call from a screen whose top edge is dark (a header band, a photo). */
+export function useStatusInk(ink: StatusInk) {
+  const set = useContext(StatusInkCtx)
+  useEffect(() => { set(ink) }, [set, ink])
+}
+
+function StatusBar({ ink }: { ink: StatusInk }) {
   return (
     <div style={{
       position: 'absolute', top: 0, left: 0, right: 0, height: 54, zIndex: 60,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 30px', pointerEvents: 'none', color: 'var(--ink)',
+      padding: '0 30px', pointerEvents: 'none',
+      color: ink === 'light' ? 'var(--on-green)' : 'var(--ink)',
+      transition: 'color .25s ease',
       fontFamily: 'var(--font-body)', fontWeight: 600, fontSize: 15.5, letterSpacing: '0.01em',
     }}>
       <span style={{ marginTop: 6 }}>9:41</span>
@@ -35,13 +49,14 @@ function StatusBar() {
 }
 
 export function PhoneFrame({ children, bare = false }: { children: ReactNode; bare?: boolean }) {
+  const [ink, setInk] = useState<StatusInk>('dark')
   const screen = (
     <div style={{
       position: 'relative', width: PHONE_W, height: PHONE_H, overflow: 'hidden',
       borderRadius: bare ? 0 : 54, background: 'var(--bg)', isolation: 'isolate',
     }}>
-      {children}
-      <StatusBar />
+      <StatusInkCtx.Provider value={setInk}>{children}</StatusInkCtx.Provider>
+      <StatusBar ink={ink} />
       {/* dynamic island */}
       <div style={{
         position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)',

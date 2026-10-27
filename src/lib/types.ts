@@ -1,10 +1,12 @@
 export type Fulfillment = 'pickup' | 'delivery'
 export type CategoryId = 'produce' | 'bakery' | 'pantry' | 'dairy' | 'prepared'
 
+export type ProviderKind = 'Food Bank' | 'Community Pantry' | 'Mobile Market' | 'Meal Program' | 'Soup Kitchen'
+
 export interface Provider {
   id: string
   name: string
-  kind: string
+  kind: ProviderKind
   dist: number
   rating: number
   addr: string
@@ -12,6 +14,19 @@ export interface Provider {
   blurb: string
   fulfillment: Fulfillment[]
   category: CategoryId
+  /* ── directory fields ──
+     What a person needs before they travel. The order matters: `bring` comes
+     first in the UI because "what will they ask me for" is the question that
+     stops people walking through the door. */
+  bring: string
+  phone: string
+  /** 0 = Sunday, matching Date#getDay; null is closed that day */
+  hours: (string | null)[]
+  services: string[]
+  languages: string[]
+  /** step-free entry, and whether a bus route reaches it */
+  stepFree: boolean
+  transit?: string
 }
 
 export interface Listing {
@@ -21,6 +36,8 @@ export interface Listing {
   category: CategoryId
   desc: string
   qtyLeft: number
+  /** what the provider started the day with — the denominator for the stock bar */
+  qtyTotal: number
   unit: string
   diet: string[]
   waitlist: number
